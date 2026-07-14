@@ -1,0 +1,14 @@
+# Arquivos criados pelo macOS
+.DS_Store
+**/.DS_Store
+
+# Configurações locais do VS Code
+.vscode/
+
+# Arquivos compactados e backups
+*.zip
+
+# Credenciais e variáveis privadas futuras
+.env
+.env.*
+!.env.example

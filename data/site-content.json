@@ -1,0 +1,141 @@
+{
+  "site": {
+    "name": "Bruno Oliveira",
+    "description": "Portfólio profissional de Bruno Oliveira, designer e diretor de arte.",
+    "navigation": [
+      {
+        "label": "HOME",
+        "url": "index.html",
+        "page": "home"
+      },
+      {
+        "label": "WORK",
+        "url": "work.html",
+        "page": "work"
+      },
+      {
+        "label": "ABOUT",
+        "url": "about.html",
+        "page": "about"
+      }
+    ],
+    "footer": {
+      "question": "DID YOU LIKE IT?",
+      "subtitle": "Gostou dos projetos?",
+      "ctaLabel": "HIT ME UP!",
+      "email": "seuemail@dominio.com",
+      "emailSubject": "Olá!"
+    }
+  },
+  "home": {
+    "title": "BRUNO OLIVEIRA",
+    "portraitImage": "assets/images/portrait-source.jpeg"
+  },
+  "about": {
+    "title": "ABOUT",
+    "description": "Conheça Bruno Oliveira, designer e diretor de arte, sua trajetória profissional, experiência e abordagem criativa.",
+    "paragraphs": [
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl vel tincidunt lacinia, nunc est aliquam nunc, eget aliquam nisl nunc eget nunc.",
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl vel tincidunt lacinia, nunc est aliquam nunc, eget aliquam nisl nunc eget nunc."
+    ]
+  },
+  "work": {
+    "description": "Projetos de design gráfico, identidade visual, direção de arte e design editorial de Bruno Oliveira.",
+    "projects": [
+      {
+        "title": "PROJETO TESTE DA GAYZINHA",
+        "category": "Design Gráfico + Editorial",
+        "client": "Editora Exemplo",
+        "year": "2025—26",
+        "badge": "new",
+        "image": "assets/images/placeholder-1.png",
+        "url": "#"
+      },
+      {
+        "title": "AMANHÃ CONSEGUE ME ENTREGAR ALGUMA COISA DAS SUJAS?",
+        "category": "Identidade Visual",
+        "client": "Estúdio Exemplo / Parceiro",
+        "year": "2025",
+        "badge": "new",
+        "image": "assets/images/placeholder-2.png",
+        "url": "#"
+      },
+      {
+        "title": "A FORÇA DA MULHER SAPATONA",
+        "category": "Direção de Arte",
+        "client": "Marca / Cliente C",
+        "status": "comingSoon",
+        "image": "assets/images/placeholder-3.png"
+      },
+      {
+        "title": "PROJETO DE EXEMPLO 04",
+        "category": "Design Gráfico + Editorial",
+        "client": "Cliente Exemplo D",
+        "year": "2024",
+        "image": "assets/images/placeholder-4.png",
+        "url": "#"
+      },
+      {
+        "title": "PROJETO DE EXEMPLO 05",
+        "category": "Identidade Visual",
+        "client": "Cliente Exemplo E",
+        "year": "2024",
+        "image": "assets/images/placeholder-1.png",
+        "url": "#"
+      },
+      {
+        "title": "PROJETO DE EXEMPLO 06",
+        "category": "AD + Identidade Visual",
+        "client": "Cliente Exemplo F",
+        "status": "comingSoon",
+        "image": "assets/images/placeholder-2.png"
+      },
+      {
+        "title": "PROJETO DE EXEMPLO 07",
+        "category": "Lettering + Design Gráfico",
+        "client": "Artista / Cliente G",
+        "status": "comingSoon",
+        "image": "assets/images/placeholder-3.png"
+      },
+      {
+        "title": "PROJETO DE EXEMPLO 08",
+        "category": "Design Editorial",
+        "client": "Escritor H",
+        "year": "2023",
+        "image": "assets/images/placeholder-4.png",
+        "url": "#"
+      },
+      {
+        "title": "PROJETO DE EXEMPLO 09",
+        "category": "Design Gráfico",
+        "client": "Cliente / Empresa I",
+        "year": "2022",
+        "image": "assets/images/placeholder-1.png",
+        "url": "#"
+      }
+    ],
+    "archive": [
+      {
+        "title": "PROJETO ANTIGO A",
+        "detail": "identidade visual [2022]",
+        "url": "#"
+      },
+      {
+        "title": "PROJETO ANTIGO B",
+        "detail": "identidade visual [2022]",
+        "url": "#"
+      },
+      {
+        "title": "PROJETO ANTIGO C",
+        "detail": "design editorial [2021]",
+        "url": "#"
+      },
+      {
+        "title": "PROJETO ANTIGO D",
+        "detail": "identidade visual [2020]",
+        "url": "#"
+      }
+    ],
+    "miscUrl": "#"
+  }
+}
