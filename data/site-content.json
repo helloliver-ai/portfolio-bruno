@@ -43,75 +43,142 @@
     "description": "Projetos de design gráfico, identidade visual, direção de arte e design editorial de Bruno Oliveira.",
     "projects": [
       {
-        "title": "PROJETO TESTE DA GAYZINHA",
-        "category": "Design Gráfico + Editorial",
-        "client": "Editora Exemplo",
-        "year": "2025—26",
-        "badge": "new",
-        "image": "assets/images/placeholder-1.png",
-        "url": "#"
+        "slug": "instituto-hahaha",
+        "title": "Instituto Hahaha 10 anos",
+        "category": "Estratégia, direção de arte e identidade visual",
+        "client": "Instituto Hahaha",
+        "year": "[ano a confirmar]",
+        "status": "published",
+        "shortDescription": "Projeto comemorativo dos 10 anos do Instituto Hahaha.",
+        "descriptionPt": "[Placeholder — adicionar o texto definitivo do projeto em português.]",
+        "descriptionEn": "[Placeholder — add the final English project description.]",
+        "coverImage": "assets/instituto-hahaha-project-cover.png",
+        "gallery": [
+          {
+            "src": "assets/hahaha-ex1.png",
+            "alt": "Intervenção do Instituto Hahaha em ambiente hospitalar",
+            "layout": "half"
+          },
+          {
+            "src": "assets/hahaha-ex2.webp",
+            "alt": "Criança e integrante do Instituto Hahaha em ambiente hospitalar",
+            "layout": "half"
+          }
+        ],
+        "externalUrl": null,
+        "credits": [
+          {
+            "label": "Credits / créditos",
+            "value": "[Placeholder — adicionar créditos do projeto.]"
+          }
+        ],
+        "featured": true,
+        "order": 1,
+        "published": true
       },
       {
-        "title": "AMANHÃ CONSEGUE ME ENTREGAR ALGUMA COISA DAS SUJAS?",
-        "category": "Identidade Visual",
-        "client": "Estúdio Exemplo / Parceiro",
-        "year": "2025",
-        "badge": "new",
-        "image": "assets/images/placeholder-2.png",
-        "url": "#"
+        "slug": "projeto-02",
+        "title": "insira aqui o seu projeto",
+        "category": "[categoria]",
+        "client": "[cliente]",
+        "year": "[ano]",
+        "status": "placeholder",
+        "coverImage": "assets/images/placeholder-2.png",
+        "gallery": [],
+        "featured": false,
+        "order": 2,
+        "published": true
       },
       {
-        "title": "A FORÇA DA MULHER SAPATONA",
-        "category": "Direção de Arte",
-        "client": "Marca / Cliente C",
-        "status": "comingSoon",
-        "image": "assets/images/placeholder-3.png"
+        "slug": "projeto-03",
+        "title": "insira aqui o seu projeto",
+        "category": "[categoria]",
+        "client": "[cliente]",
+        "year": "[ano]",
+        "status": "placeholder",
+        "coverImage": "assets/images/placeholder-3.png",
+        "gallery": [],
+        "featured": false,
+        "order": 3,
+        "published": true
       },
       {
-        "title": "PROJETO DE EXEMPLO 04",
-        "category": "Design Gráfico + Editorial",
-        "client": "Cliente Exemplo D",
-        "year": "2024",
-        "image": "assets/images/placeholder-4.png",
-        "url": "#"
+        "slug": "projeto-04",
+        "title": "insira aqui o seu projeto",
+        "category": "[categoria]",
+        "client": "[cliente]",
+        "year": "[ano]",
+        "status": "placeholder",
+        "coverImage": "assets/images/placeholder-4.png",
+        "gallery": [],
+        "featured": false,
+        "order": 4,
+        "published": true
       },
       {
-        "title": "PROJETO DE EXEMPLO 05",
-        "category": "Identidade Visual",
-        "client": "Cliente Exemplo E",
-        "year": "2024",
-        "image": "assets/images/placeholder-1.png",
-        "url": "#"
+        "slug": "projeto-05",
+        "title": "insira aqui o seu projeto",
+        "category": "[categoria]",
+        "client": "[cliente]",
+        "year": "[ano]",
+        "status": "placeholder",
+        "coverImage": "assets/images/placeholder-1.png",
+        "gallery": [],
+        "featured": false,
+        "order": 5,
+        "published": true
       },
       {
-        "title": "PROJETO DE EXEMPLO 06",
-        "category": "AD + Identidade Visual",
-        "client": "Cliente Exemplo F",
-        "status": "comingSoon",
-        "image": "assets/images/placeholder-2.png"
+        "slug": "projeto-06",
+        "title": "insira aqui o seu projeto",
+        "category": "[categoria]",
+        "client": "[cliente]",
+        "year": "[ano]",
+        "status": "placeholder",
+        "coverImage": "assets/images/placeholder-2.png",
+        "gallery": [],
+        "featured": false,
+        "order": 6,
+        "published": true
       },
       {
-        "title": "PROJETO DE EXEMPLO 07",
-        "category": "Lettering + Design Gráfico",
-        "client": "Artista / Cliente G",
-        "status": "comingSoon",
-        "image": "assets/images/placeholder-3.png"
+        "slug": "projeto-07",
+        "title": "insira aqui o seu projeto",
+        "category": "[categoria]",
+        "client": "[cliente]",
+        "year": "[ano]",
+        "status": "placeholder",
+        "coverImage": "assets/images/placeholder-3.png",
+        "gallery": [],
+        "featured": false,
+        "order": 7,
+        "published": true
       },
       {
-        "title": "PROJETO DE EXEMPLO 08",
-        "category": "Design Editorial",
-        "client": "Escritor H",
-        "year": "2023",
-        "image": "assets/images/placeholder-4.png",
-        "url": "#"
+        "slug": "projeto-08",
+        "title": "insira aqui o seu projeto",
+        "category": "[categoria]",
+        "client": "[cliente]",
+        "year": "[ano]",
+        "status": "placeholder",
+        "coverImage": "assets/images/placeholder-4.png",
+        "gallery": [],
+        "featured": false,
+        "order": 8,
+        "published": true
       },
       {
-        "title": "PROJETO DE EXEMPLO 09",
-        "category": "Design Gráfico",
-        "client": "Cliente / Empresa I",
-        "year": "2022",
-        "image": "assets/images/placeholder-1.png",
-        "url": "#"
+        "slug": "projeto-09",
+        "title": "insira aqui o seu projeto",
+        "category": "[categoria]",
+        "client": "[cliente]",
+        "year": "[ano]",
+        "status": "placeholder",
+        "coverImage": "assets/images/placeholder-1.png",
+        "gallery": [],
+        "featured": false,
+        "order": 9,
+        "published": true
       }
     ],
     "archive": [

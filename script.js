@@ -55,7 +55,7 @@ function renderHeader(site) {
     link.className = "portfolio-nav__link";
     link.textContent = item.label;
 
-    if (item.page === currentPage) {
+    if (item.page === currentPage || (currentPage === "project" && item.page === "work")) {
       link.setAttribute("aria-current", "page");
     }
 
@@ -153,6 +153,11 @@ function renderCurrentPage(content) {
 
   if (page === "about") {
     renderAbout(content.about);
+    return;
+  }
+
+  if (page === "project") {
+    renderProjectPage(content.work);
   }
 }
 
@@ -203,11 +208,20 @@ function renderAbout(about) {
 }
 
 function renderWorkPage(work) {
-  renderProjects(work.projects || []);
+  renderProjects(getPublishedProjects(work.projects || []));
   renderArchive(work.archive || [], work.miscUrl);
   setupProjectPreview();
   updateMarqueesWhenReady();
   window.addEventListener("resize", requestMarqueeUpdate);
+}
+
+function getPublishedProjects(projects) {
+  return projects
+    .filter((project) => project.published !== false)
+    .sort((firstProject, secondProject) => {
+      return (firstProject.order ?? Number.MAX_SAFE_INTEGER) -
+        (secondProject.order ?? Number.MAX_SAFE_INTEGER);
+    });
 }
 
 function renderProjects(projects) {
@@ -232,7 +246,7 @@ function createProjectItem(project) {
   const bullet = document.createElement("span");
 
   item.className = "project-item";
-  item.dataset.image = project.image || "";
+  item.dataset.image = project.coverImage || "";
   item.dataset.title = project.title;
 
   meta.className = "project-meta-top";
@@ -291,7 +305,7 @@ function createProjectStatus(project) {
 }
 
 function createProjectTitle(project) {
-  const hasLink = Boolean(project.url) && project.status !== "comingSoon";
+  const hasLink = Boolean(project.slug);
   const titleElement = document.createElement(hasLink ? "a" : "span");
   const marquee = document.createElement("div");
 
@@ -299,7 +313,7 @@ function createProjectTitle(project) {
   marquee.className = "marquee-wrapper";
 
   if (hasLink) {
-    titleElement.href = project.url;
+    titleElement.href = `project.html?slug=${encodeURIComponent(project.slug)}`;
   }
 
   for (let index = 0; index < MARQUEE_REPEAT_COUNT; index += 1) {
@@ -317,6 +331,230 @@ function createProjectTitle(project) {
 
   titleElement.appendChild(marquee);
   return titleElement;
+}
+
+function renderProjectPage(work) {
+  const root = document.getElementById("project-root");
+  const projects = getPublishedProjects(work.projects || []);
+  const slug = new URLSearchParams(window.location.search).get("slug");
+  const project = projects.find((item) => item.slug === slug);
+
+  if (!root) {
+    return;
+  }
+
+  if (!project) {
+    renderProjectNotFound(root);
+    return;
+  }
+
+  document.title = `${project.title} | Bruno Oliveira`;
+
+  const descriptionMeta = document.querySelector('meta[name="description"]');
+  if (descriptionMeta && project.shortDescription) {
+    descriptionMeta.content = project.shortDescription;
+  }
+
+  if (project.status === "placeholder") {
+    renderProjectPlaceholder(root);
+    return;
+  }
+
+  document.body.classList.remove("project-is-placeholder");
+  root.replaceChildren(createProjectContent(project, projects));
+}
+
+function renderProjectNotFound(root) {
+  document.title = "Projeto não encontrado | Bruno Oliveira";
+  document.body.classList.add("project-is-placeholder");
+
+  const section = document.createElement("section");
+  const title = document.createElement("h1");
+  const link = document.createElement("a");
+
+  section.className = "project-placeholder";
+  title.textContent = "projeto não encontrado";
+  link.href = "work.html";
+  link.textContent = "← voltar para Work";
+  section.append(title, link);
+  root.replaceChildren(section);
+}
+
+function renderProjectPlaceholder(root) {
+  document.body.classList.add("project-is-placeholder");
+
+  const section = document.createElement("section");
+  const title = document.createElement("h1");
+  const link = document.createElement("a");
+
+  section.className = "project-placeholder";
+  title.textContent = "gayzinha, para de procrastinar e vai preparar os seus projetos!";
+  link.href = "work.html";
+  link.textContent = "← voltar para Work";
+  section.append(title, link);
+  root.replaceChildren(section);
+}
+
+function createProjectContent(project, projects) {
+  const article = document.createElement("article");
+  const heading = document.createElement("header");
+  const title = document.createElement("h1");
+  const meta = document.createElement("dl");
+
+  article.className = "project-case-study";
+  heading.className = "project-case-study__header";
+  title.className = "project-case-study__title";
+  title.textContent = project.title;
+  meta.className = "project-case-study__meta";
+
+  appendProjectMeta(meta, "Category / categoria", project.category);
+  appendProjectMeta(meta, "Client / cliente", project.client);
+  appendProjectMeta(meta, "Year / ano", project.year);
+  heading.append(title, meta);
+  article.append(heading);
+
+  if (project.coverImage) {
+    article.append(createProjectImage(project.coverImage, project.title, "project-cover"));
+  }
+
+  if (Array.isArray(project.gallery) && project.gallery.length > 0) {
+    article.append(createProjectGallery(project.gallery));
+  }
+
+  article.append(
+    createProjectDescription(project),
+    createProjectCredits(project.credits || []),
+    createProjectNavigation(project, projects)
+  );
+
+  return article;
+}
+
+function appendProjectMeta(list, label, value) {
+  if (!value) {
+    return;
+  }
+
+  const group = document.createElement("div");
+  const term = document.createElement("dt");
+  const detail = document.createElement("dd");
+
+  term.textContent = label;
+  detail.textContent = value;
+  group.append(term, detail);
+  list.appendChild(group);
+}
+
+function createProjectImage(src, alt, className) {
+  const figure = document.createElement("figure");
+  const image = document.createElement("img");
+
+  figure.className = className;
+  image.src = src;
+  image.alt = alt || "";
+  image.loading = className === "project-cover" ? "eager" : "lazy";
+  image.decoding = "async";
+  figure.appendChild(image);
+
+  return figure;
+}
+
+function createProjectGallery(gallery) {
+  const section = document.createElement("section");
+
+  section.className = "project-gallery";
+  section.setAttribute("aria-label", "Galeria do projeto");
+
+  gallery.forEach((item) => {
+    const media = createProjectImage(item.src, item.alt, "project-media");
+
+    if (item.layout === "full") {
+      media.classList.add("project-media--full");
+    }
+
+    section.appendChild(media);
+  });
+
+  return section;
+}
+
+function createProjectDescription(project) {
+  const section = document.createElement("section");
+  const heading = document.createElement("h2");
+  const english = document.createElement("div");
+  const portuguese = document.createElement("div");
+  const englishLabel = document.createElement("h3");
+  const portugueseLabel = document.createElement("h3");
+  const englishText = document.createElement("p");
+  const portugueseText = document.createElement("p");
+
+  section.className = "project-description";
+  heading.textContent = "The project / O projeto";
+  englishLabel.textContent = "EN";
+  portugueseLabel.textContent = "PT";
+  englishText.textContent = project.descriptionEn || "[Placeholder — add the final English project description.]";
+  portugueseText.textContent = project.descriptionPt || "[Placeholder — adicionar o texto definitivo do projeto em português.]";
+  english.append(englishLabel, englishText);
+  portuguese.append(portugueseLabel, portugueseText);
+  section.append(heading, english, portuguese);
+
+  return section;
+}
+
+function createProjectCredits(credits) {
+  const section = document.createElement("section");
+  const safeCredits = credits.length > 0
+    ? credits
+    : [{ label: "Credits / créditos", value: "[Placeholder — adicionar créditos do projeto.]" }];
+
+  section.className = "project-credits";
+  section.setAttribute("aria-label", "Créditos do projeto");
+
+  safeCredits.forEach((credit) => {
+    const item = document.createElement("div");
+    const label = document.createElement("h2");
+    const value = document.createElement("p");
+
+    label.textContent = credit.label;
+    value.textContent = credit.value;
+    item.append(label, value);
+    section.appendChild(item);
+  });
+
+  return section;
+}
+
+function createProjectNavigation(project, projects) {
+  const nav = document.createElement("nav");
+  const currentIndex = projects.findIndex((item) => item.slug === project.slug);
+  const previousProject = projects[(currentIndex - 1 + projects.length) % projects.length];
+  const nextProject = projects[(currentIndex + 1) % projects.length];
+
+  nav.className = "project-pagination";
+  nav.setAttribute("aria-label", "Navegação entre projetos");
+  nav.append(
+    createProjectNavigationLink(previousProject, "←", "Projeto anterior"),
+    createProjectNavigationLink(null, "↑", "Voltar para Work"),
+    createProjectNavigationLink(nextProject, "→", "Próximo projeto")
+  );
+
+  return nav;
+}
+
+function createProjectNavigationLink(project, arrow, label) {
+  const link = document.createElement("a");
+  const icon = document.createElement("span");
+  const text = document.createElement("span");
+
+  link.href = project
+    ? `project.html?slug=${encodeURIComponent(project.slug)}`
+    : "work.html";
+  link.setAttribute("aria-label", project ? `${label}: ${project.title}` : label);
+  icon.textContent = arrow;
+  text.textContent = label;
+  link.append(icon, text);
+
+  return link;
 }
 
 function renderArchive(items, miscUrl) {
