@@ -112,7 +112,8 @@
         ],
         "featured": true,
         "order": 1,
-        "published": true
+        "published": true,
+        "workPreviewImage": "assets/instituto-hahaha-project-cover.png"
       },
       {
         "slug": "projeto-02",
@@ -125,7 +126,8 @@
         "gallery": [],
         "featured": false,
         "order": 2,
-        "published": true
+        "published": true,
+        "workPreviewImage": ""
       },
       {
         "slug": "projeto-03",
@@ -138,7 +140,8 @@
         "gallery": [],
         "featured": false,
         "order": 3,
-        "published": true
+        "published": true,
+        "workPreviewImage": ""
       },
       {
         "slug": "projeto-04",
@@ -151,7 +154,8 @@
         "gallery": [],
         "featured": false,
         "order": 4,
-        "published": true
+        "published": true,
+        "workPreviewImage": ""
       },
       {
         "slug": "projeto-05",
@@ -164,7 +168,8 @@
         "gallery": [],
         "featured": false,
         "order": 5,
-        "published": true
+        "published": true,
+        "workPreviewImage": ""
       },
       {
         "slug": "projeto-06",
@@ -177,7 +182,8 @@
         "gallery": [],
         "featured": false,
         "order": 6,
-        "published": true
+        "published": true,
+        "workPreviewImage": ""
       },
       {
         "slug": "projeto-07",
@@ -190,7 +196,8 @@
         "gallery": [],
         "featured": false,
         "order": 7,
-        "published": true
+        "published": true,
+        "workPreviewImage": ""
       },
       {
         "slug": "projeto-08",
@@ -203,7 +210,8 @@
         "gallery": [],
         "featured": false,
         "order": 8,
-        "published": true
+        "published": true,
+        "workPreviewImage": ""
       },
       {
         "slug": "projeto-09",
@@ -216,7 +224,8 @@
         "gallery": [],
         "featured": false,
         "order": 9,
-        "published": true
+        "published": true,
+        "workPreviewImage": ""
       }
     ],
     "archive": [

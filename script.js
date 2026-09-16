@@ -58,7 +58,7 @@ function renderHeader(site) {
 
     link.href = item.url;
     link.className = "portfolio-nav__link";
-    link.textContent = (currentPage === "home" || currentPage === "about")
+    link.textContent = (currentPage === "home" || currentPage === "work" || currentPage === "about")
       ? homeNavigationLabels[item.page] || item.label
       : item.label;
 
@@ -368,7 +368,6 @@ function createAboutProfessionalItem(item, type) {
 function renderWorkPage(work) {
   renderProjects(getPublishedProjects(work.projects || []));
   renderArchive(work.archive || [], work.miscUrl);
-  setupProjectPreview();
   updateMarqueesWhenReady();
   window.addEventListener("resize", requestMarqueeUpdate);
 }
@@ -399,13 +398,14 @@ function renderProjects(projects) {
 
 function createProjectItem(project) {
   const item = document.createElement("article");
+  const content = document.createElement("div");
   const meta = document.createElement("div");
   const titleRow = document.createElement("div");
   const bullet = document.createElement("span");
 
   item.className = "project-item";
-  item.dataset.image = project.coverImage || "";
   item.dataset.title = project.title;
+  content.className = "project-item__content";
 
   meta.className = "project-meta-top";
   meta.append(
@@ -419,9 +419,41 @@ function createProjectItem(project) {
   bullet.setAttribute("aria-hidden", "true");
 
   titleRow.append(bullet, createProjectTitle(project));
-  item.append(meta, titleRow);
+  content.append(meta, titleRow);
+  item.append(content, createProjectPreview(project));
 
   return item;
+}
+
+function createProjectPreview(project) {
+  const preview = document.createElement("aside");
+  const frame = document.createElement("div");
+  const meta = document.createElement("div");
+  const title = document.createElement("h2");
+  const details = document.createElement("p");
+  const image = document.createElement("img");
+  const imageUrl = project.workPreviewImage || project.coverImage || "";
+
+  preview.className = "project-preview";
+  preview.setAttribute("aria-hidden", "true");
+  frame.className = "project-preview__frame";
+  meta.className = "project-preview__meta";
+  title.textContent = project.title || "";
+  details.textContent = [project.category, project.client, project.year].filter(Boolean).join(" · ");
+  image.className = "project-preview__image";
+  image.src = imageUrl;
+  image.alt = "";
+  image.loading = "eager";
+  image.decoding = "async";
+
+  if (!imageUrl) {
+    preview.classList.add("project-preview--empty");
+  }
+
+  meta.append(title, details);
+  frame.append(meta, image);
+  preview.appendChild(frame);
+  return preview;
 }
 
 function createMetaField(text) {
@@ -750,45 +782,6 @@ function renderArchive(items, miscUrl) {
   if (miscLink) {
     miscLink.href = miscUrl || "#";
   }
-}
-
-function setupProjectPreview() {
-  const previewImg = document.getElementById("preview-img");
-  const projectItems = document.querySelectorAll(".project-item");
-
-  if (!previewImg || projectItems.length === 0) {
-    return;
-  }
-
-  let currentItem = null;
-
-  projectItems.forEach((item) => {
-    item.addEventListener("mouseenter", () => {
-      const imageUrl = item.dataset.image;
-
-      if (!imageUrl) {
-        return;
-      }
-
-      currentItem = item;
-      previewImg.classList.remove("visible");
-
-      window.setTimeout(() => {
-        if (currentItem !== item) {
-          return;
-        }
-
-        previewImg.src = imageUrl;
-        previewImg.alt = `Prévia do projeto ${item.dataset.title || ""}`.trim();
-        previewImg.classList.add("visible");
-      }, PREVIEW_FADE_DELAY);
-    });
-
-    item.addEventListener("mouseleave", () => {
-      currentItem = null;
-      previewImg.classList.remove("visible");
-    });
-  });
 }
 
 function updateMarqueesWhenReady() {
