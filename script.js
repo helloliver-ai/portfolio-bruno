@@ -58,7 +58,7 @@ function renderHeader(site) {
 
     link.href = item.url;
     link.className = "portfolio-nav__link";
-    link.textContent = currentPage === "home"
+    link.textContent = (currentPage === "home" || currentPage === "about")
       ? homeNavigationLabels[item.page] || item.label
       : item.label;
 
@@ -183,35 +183,186 @@ function renderHome(home) {
 
 function renderAbout(about) {
   const title = document.getElementById("about-title");
+  const kicker = document.getElementById("about-kicker");
+  const portrait = document.getElementById("about-portrait");
   const textContainer = document.getElementById("about-text");
+  const detailsContainer = document.getElementById("about-details");
 
   document.title = "About | Bruno Oliveira";
 
+  if (portrait && about.portrait) {
+    portrait.src = about.portrait.src || portrait.src;
+    portrait.alt = about.portrait.alt || portrait.alt;
+  }
+
+  if (kicker) {
+    kicker.textContent = about.headline?.kicker || "[headline kicker]";
+  }
+
   if (title) {
-    title.innerHTML = "olá, sou o<br>bruno";
+    const lines = about.headline?.lines || ["[headline]"];
+    const fragment = document.createDocumentFragment();
+
+    lines.forEach((line, index) => {
+      const lineElement = document.createElement("span");
+
+      lineElement.className = "about-title__line";
+      if (index === 0) {
+        lineElement.classList.add("about-title__line--light");
+      }
+      lineElement.textContent = line;
+      fragment.appendChild(lineElement);
+    });
+
+    title.replaceChildren(fragment);
   }
 
-  if (!textContainer) {
-    return;
+  if (textContainer) {
+    const fragment = document.createDocumentFragment();
+
+    fragment.append(
+      createAboutBio("en", about.biography?.en),
+      createAboutBio("pt", about.biography?.pt)
+    );
+    textContainer.replaceChildren(fragment);
   }
 
-  const fragment = document.createDocumentFragment();
+  if (detailsContainer) {
+    detailsContainer.replaceChildren(createAboutDetails(about));
+  }
+}
 
-  about.paragraphs.forEach((paragraph, index) => {
+function createAboutBio(language, paragraphs) {
+  const section = document.createElement("section");
+  const label = document.createElement("span");
+  const copy = Array.isArray(paragraphs) && paragraphs.length
+    ? paragraphs
+    : ["[Placeholder — adicionar biografia.]"];
+
+  section.className = `about-bio about-bio--${language}`;
+  label.className = "about-bio__label";
+  label.textContent = language.toUpperCase();
+  section.appendChild(label);
+
+  copy.forEach((paragraph) => {
     const text = document.createElement("p");
 
     text.className = "about-text";
-    if (index === 0) {
-      const lead = document.createElement("strong");
-      lead.textContent = "PT ";
-      text.append(lead, document.createTextNode(paragraph));
-    } else {
-      text.textContent = paragraph;
-    }
-    fragment.appendChild(text);
+    text.textContent = paragraph;
+    section.appendChild(text);
   });
 
-  textContainer.replaceChildren(fragment);
+  return section;
+}
+
+function createAboutDetails(about) {
+  const fragment = document.createDocumentFragment();
+  const contact = document.createElement("div");
+  const location = document.createElement("p");
+  const socials = document.createElement("div");
+  const professional = document.createElement("div");
+
+  contact.className = "about-contact";
+  location.className = "about-location";
+  location.replaceChildren(...(about.location || ["[location]"]).map((line) => {
+    const lineElement = document.createElement("span");
+
+    lineElement.textContent = line;
+    return lineElement;
+  }));
+
+  socials.className = "about-socials";
+  (about.socialLinks || []).forEach((social) => {
+    socials.appendChild(createAboutSocial(social));
+  });
+  contact.append(location, socials);
+
+  professional.className = "about-professional";
+  professional.append(
+    createAboutProfessionalColumn("experiência", "experience", about.experience || [], "experience"),
+    createAboutProfessionalColumn("educação", "education", about.education || [], "education")
+  );
+
+  fragment.append(contact, professional);
+  return fragment;
+}
+
+function createAboutSocial(social) {
+  const hasUrl = Boolean(social.url);
+  const socialElement = document.createElement(hasUrl ? "a" : "span");
+
+  socialElement.className = "about-social-link";
+  socialElement.textContent = `${social.label || "[social]"} ↗`;
+
+  if (hasUrl) {
+    socialElement.href = social.url;
+    socialElement.target = "_blank";
+    socialElement.rel = "noreferrer";
+  } else {
+    socialElement.classList.add("is-unavailable");
+    socialElement.setAttribute("aria-disabled", "true");
+  }
+
+  return socialElement;
+}
+
+function createAboutProfessionalColumn(labelPt, labelEn, items, type) {
+  const column = document.createElement("section");
+  const arrow = document.createElement("span");
+  const heading = document.createElement("h2");
+  const list = document.createElement("div");
+
+  column.className = "about-professional-column";
+  arrow.className = "about-section-arrow";
+  arrow.setAttribute("aria-hidden", "true");
+  arrow.textContent = "↓";
+  heading.className = "about-professional-heading";
+  heading.append(document.createTextNode(labelPt), document.createTextNode(" / "));
+  const english = document.createElement("em");
+  english.textContent = labelEn;
+  heading.appendChild(english);
+  list.className = "about-professional-list";
+
+  getOrderedItems(items).forEach((item) => {
+    list.appendChild(createAboutProfessionalItem(item, type));
+  });
+
+  column.append(arrow, heading, list);
+  return column;
+}
+
+function getOrderedItems(items) {
+  return [...items].sort((firstItem, secondItem) => (firstItem.order ?? 0) - (secondItem.order ?? 0));
+}
+
+function createAboutProfessionalItem(item, type) {
+  const entry = document.createElement("article");
+  const title = type === "education"
+    ? item.course || "[Placeholder — adicionar curso.]"
+    : item.institution || "[Placeholder — adicionar instituição.]";
+  const titleElement = document.createElement(item.url ? "a" : "strong");
+  const details = type === "experience"
+    ? [item.role, item.period]
+    : [item.institution, item.location, item.period];
+
+  entry.className = "about-professional-item";
+  titleElement.className = "about-professional-item__title";
+  titleElement.textContent = title;
+  if (item.url) {
+    titleElement.href = item.url;
+    titleElement.target = "_blank";
+    titleElement.rel = "noreferrer";
+  }
+  entry.appendChild(titleElement);
+
+  details.filter(Boolean).forEach((detail) => {
+    const line = document.createElement("span");
+
+    line.textContent = detail;
+    entry.appendChild(line);
+  });
+
+  return entry;
 }
 
 function renderWorkPage(work) {

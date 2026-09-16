@@ -34,9 +34,47 @@
   "about": {
     "title": "olá, sou o bruno",
     "description": "Conheça Bruno Oliveira, designer e diretor de arte, sua trajetória profissional, experiência e abordagem criativa.",
-    "paragraphs": [
-      "Bruno é um designer multidisciplinar, negro e LGBTQIAPN+. Desenvolve projetos de branding, estratégia, direção criativa e design gráfico, transitando entre o digital e o analógico. Sua prática se concentra, sobretudo, em projetos culturais, institucionais e iniciativas do terceiro setor.",
-      "Sua formação em dança, música, cerâmica, gastronomia e desenho atravessa seu modo de pensar e fazer design, ampliando seu olhar sobre processos, pessoas e contextos. A partir da escuta e da investigação, busca compreender a complexidade dos desafios e transformá-los em soluções estratégicas, sensíveis e relevantes."
+    "portrait": {
+      "src": "assets/bruno-portrait.png",
+      "alt": "Retrato de Bruno Oliveira"
+    },
+    "headline": {
+      "kicker": "hey, I",
+      "lines": ["am/ olá,", "sou o", "bruno"]
+    },
+    "biography": {
+      "en": [
+        "Bruno is a multidisciplinary designer, Black and LGBTQIAPN+. He develops projects in branding, strategy, creative direction and graphic design, moving between digital and analogue mediums. His practice focuses primarily on cultural and institutional projects, as well as initiatives within the nonprofit sector.",
+        "His background in dance, music, ceramics, gastronomy and drawing informs the way he approaches design, broadening his perspective on processes, people and contexts. Through listening and research, he seeks to understand the complexity of challenges and transform them into strategic, thoughtful and relevant solutions."
+      ],
+      "pt": [
+        "Bruno é um designer multidisciplinar, negro e LGBTQIAPN+. Desenvolve projetos de branding, estratégia, direção criativa e design gráfico, transitando entre o digital e o analógico. Sua prática se concentra, sobretudo, em projetos culturais, institucionais e iniciativas do terceiro setor.",
+        "Sua formação em dança, música, cerâmica, gastronomia e desenho atravessa seu modo de pensar e fazer design, ampliando seu olhar sobre processos, pessoas e contextos. A partir da escuta e da investigação, busca compreender a complexidade dos desafios e transformá-los em soluções estratégicas, sensíveis e relevantes."
+      ]
+    },
+    "location": ["graphic designer", "Belo Horizonte", "MG - Brasil"],
+    "socialLinks": [
+      { "label": "Instagram", "url": "" },
+      { "label": "Behance", "url": "" },
+      { "label": "LinkedIn", "url": "" }
+    ],
+    "experience": [
+      {
+        "institution": "Instituto Hahaha",
+        "role": "Designer",
+        "period": "2021 - now",
+        "url": "",
+        "order": 1
+      }
+    ],
+    "education": [
+      {
+        "course": "Bachelor’s Degree in Design",
+        "institution": "Universidade Federal de Minas Gerais (UFMG)",
+        "location": "",
+        "period": "",
+        "order": 1
+      }
     ]
   },
   "work": {
