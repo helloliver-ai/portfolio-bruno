@@ -43,6 +43,11 @@ function renderHeader(site) {
   }
 
   const currentPage = getCurrentPage();
+  const homeNavigationLabels = {
+    home: "HOME",
+    work: "PROJECTS",
+    about: "ABOUT + CONTACT",
+  };
   const nav = document.createElement("nav");
 
   nav.className = "portfolio-nav";
@@ -53,7 +58,9 @@ function renderHeader(site) {
 
     link.href = item.url;
     link.className = "portfolio-nav__link";
-    link.textContent = item.label;
+    link.textContent = currentPage === "home"
+      ? homeNavigationLabels[item.page] || item.label
+      : item.label;
 
     if (item.page === currentPage || (currentPage === "project" && item.page === "work")) {
       link.setAttribute("aria-current", "page");

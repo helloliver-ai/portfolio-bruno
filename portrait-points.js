@@ -29,7 +29,7 @@ const settings = {
   depth: isSmallScreen ? 110 : 150,
   rotationSpeed: 0.62,
   minimumDarkness: isSmallScreen ? 0.04 : 0.025,
-  pointColor: 0x000000,
+  pointColor: 0x73757e,
   pixelRatioLimit: isSmallScreen ? 1.25 : 1.5,
 };
 
@@ -128,7 +128,7 @@ function createPortraitGeometry(image) {
       );
 
       positions.push(x, y, z);
-      sizes.push(isSmallScreen ? 1.1 + darkness * 5.8 : 1.35 + darkness * 8.4);
+      sizes.push(isSmallScreen ? 1.45 + darkness * 6.6 : 1.85 + darkness * 9.6);
       alphas.push(
         isSmallScreen
           ? 0.2 + darkness * 0.8
