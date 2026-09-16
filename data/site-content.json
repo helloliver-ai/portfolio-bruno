@@ -22,21 +22,21 @@
     "footer": {
       "question": "DID YOU LIKE IT?",
       "subtitle": "Gostou dos projetos?",
-      "ctaLabel": "HIT ME UP!",
-      "email": "seuemail@dominio.com",
+      "ctaLabel": "CONTATO@OLABRUNO.COM",
+      "email": "contato@olabruno.com",
       "emailSubject": "Olá!"
     }
   },
   "home": {
-    "title": "BRUNO OLIVEIRA",
+    "title": "Bruno Oliveira — designer e diretor de arte",
     "portraitImage": "assets/images/portrait-source.jpeg"
   },
   "about": {
-    "title": "ABOUT",
+    "title": "olá, sou o bruno",
     "description": "Conheça Bruno Oliveira, designer e diretor de arte, sua trajetória profissional, experiência e abordagem criativa.",
     "paragraphs": [
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl vel tincidunt lacinia, nunc est aliquam nunc, eget aliquam nisl nunc eget nunc.",
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl vel tincidunt lacinia, nunc est aliquam nunc, eget aliquam nisl nunc eget nunc."
+      "Bruno é um designer multidisciplinar, negro e LGBTQIAPN+. Desenvolve projetos de branding, estratégia, direção criativa e design gráfico, transitando entre o digital e o analógico. Sua prática se concentra, sobretudo, em projetos culturais, institucionais e iniciativas do terceiro setor.",
+      "Sua formação em dança, música, cerâmica, gastronomia e desenho atravessa seu modo de pensar e fazer design, ampliando seu olhar sobre processos, pessoas e contextos. A partir da escuta e da investigação, busca compreender a complexidade dos desafios e transformá-los em soluções estratégicas, sensíveis e relevantes."
     ]
   },
   "work": {

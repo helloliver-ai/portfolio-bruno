@@ -173,10 +173,10 @@ function renderAbout(about) {
   const title = document.getElementById("about-title");
   const textContainer = document.getElementById("about-text");
 
-  document.title = `About | ${about.title === "ABOUT" ? "Bruno Oliveira" : about.title}`;
+  document.title = "About | Bruno Oliveira";
 
   if (title) {
-    title.textContent = about.title;
+    title.innerHTML = "olá, sou o<br>bruno";
   }
 
   if (!textContainer) {
@@ -185,11 +185,17 @@ function renderAbout(about) {
 
   const fragment = document.createDocumentFragment();
 
-  about.paragraphs.forEach((paragraph) => {
+  about.paragraphs.forEach((paragraph, index) => {
     const text = document.createElement("p");
 
     text.className = "about-text";
-    text.textContent = paragraph;
+    if (index === 0) {
+      const lead = document.createElement("strong");
+      lead.textContent = "PT ";
+      text.append(lead, document.createTextNode(paragraph));
+    } else {
+      text.textContent = paragraph;
+    }
     fragment.appendChild(text);
   });
 
