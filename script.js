@@ -207,10 +207,15 @@ function renderAbout(about) {
       const lineElement = document.createElement("span");
 
       lineElement.className = "about-title__line";
-      if (index === 0) {
-        lineElement.classList.add("about-title__line--light");
+      if (index === 0 && line.startsWith("am/ ")) {
+        const prefix = document.createElement("span");
+
+        prefix.className = "about-title__prefix";
+        prefix.textContent = "am/ ";
+        lineElement.append(prefix, document.createTextNode(line.slice(4)));
+      } else {
+        lineElement.textContent = line;
       }
-      lineElement.textContent = line;
       fragment.appendChild(lineElement);
     });
 
@@ -263,6 +268,7 @@ function createAboutDetails(about) {
   const professional = document.createElement("div");
 
   contact.className = "about-contact";
+  contact.id = "contact";
   location.className = "about-location";
   location.replaceChildren(...(about.location || ["[location]"]).map((line) => {
     const lineElement = document.createElement("span");
@@ -275,7 +281,12 @@ function createAboutDetails(about) {
   (about.socialLinks || []).forEach((social) => {
     socials.appendChild(createAboutSocial(social));
   });
-  contact.append(location, socials);
+  const locationArrow = document.createElement("span");
+
+  locationArrow.className = "about-location-arrow";
+  locationArrow.setAttribute("aria-hidden", "true");
+  locationArrow.textContent = "↓";
+  contact.append(location, locationArrow, socials);
 
   professional.className = "about-professional";
   professional.append(

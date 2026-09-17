@@ -1094,6 +1094,10 @@ body[data-page="about"] {
   --color-accent: var(--red);
 }
 
+html:has(body[data-page="about"]) {
+  scroll-behavior: smooth;
+}
+
 body[data-page="about"] .portfolio-header {
   border-top: 0;
   border-bottom-color: var(--color-accent);
@@ -1109,16 +1113,25 @@ body[data-page="about"] .about-layout {
 }
 
 body[data-page="about"] .about-intro {
-  grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
-  gap: clamp(2.5rem, 7vw, 10rem);
-  width: min(1520px, calc(100% - clamp(2rem, 10vw, 12rem)));
-  padding: clamp(4.5rem, 8.5vw, 10rem) 0 clamp(5rem, 8vw, 9rem);
+  position: relative;
+  grid-template-columns: minmax(0, 50.2%) minmax(0, 49.8%);
+  gap: 0;
+  width: 100%;
+  margin: 0;
+  padding: clamp(8.5rem, 10vw, 10rem) 0 0;
+  border-top: 1px solid var(--color-accent);
 }
 
 body[data-page="about"] .about-portrait-wrap {
+  box-sizing: border-box;
   min-height: 0;
-  height: clamp(600px, 65vw, 1010px);
+  height: clamp(690px, 62vw, 1000px);
+  margin-left: clamp(1rem, 9.1vw, 9.25rem);
   padding: 0;
+  overflow: visible;
+  border-right: 1px solid var(--color-accent);
+  border-bottom: 1px solid var(--color-accent);
+  border-left: 1px solid var(--color-accent);
 }
 
 body[data-page="about"] .about-portrait {
@@ -1128,45 +1141,49 @@ body[data-page="about"] .about-portrait {
   aspect-ratio: auto;
   object-fit: cover;
   object-position: center top;
+  filter: none;
 }
 
 body[data-page="about"] .about-kicker,
 body[data-page="about"] .about-title {
-  left: 45%;
+  left: 40%;
   color: var(--color-accent);
   white-space: nowrap;
+  letter-spacing: -0.06em;
 }
 
 body[data-page="about"] .about-kicker {
-  top: clamp(-1rem, -1vw, -0.25rem);
+  top: clamp(-7.25rem, -7vw, -5.25rem);
   margin: 0;
-  font-size: clamp(4rem, 8.5vw, 10rem);
+  font-family: var(--font-sans);
+  font-size: clamp(5rem, 7.4vw, 7.5rem);
   font-style: italic;
-  font-weight: 300;
-  line-height: 0.82;
+  font-weight: 100;
+  line-height: 0.85;
 }
 
 body[data-page="about"] .about-title {
-  top: clamp(3.3rem, 8vw, 9rem);
+  top: clamp(1rem, 1.75vw, 1.8rem);
   display: grid;
   margin: 0;
-  font-size: clamp(4.2rem, 7.8vw, 9.5rem);
-  font-weight: 500;
-  line-height: 0.78;
+  font-size: clamp(5rem, 7.4vw, 7.5rem);
+  font-style: italic;
+  font-weight: 300;
+  line-height: 0.86;
 }
 
 body[data-page="about"] .about-title__line {
   display: block;
 }
 
-body[data-page="about"] .about-title__line--light {
-  font-style: italic;
-  font-weight: 300;
+body[data-page="about"] .about-title__prefix {
+  font-weight: 100;
 }
 
 body[data-page="about"] .about-copy {
   align-self: start;
-  padding-top: clamp(1rem, 5vw, 6rem);
+  max-width: 33rem;
+  padding: clamp(1.8rem, 2.5vw, 3rem) clamp(1.5rem, 7.8vw, 8rem) 4rem clamp(2rem, 7.8vw, 8rem);
 }
 
 body[data-page="about"] .about-bio + .about-bio {
@@ -1182,10 +1199,37 @@ body[data-page="about"] .about-bio__label {
 }
 
 body[data-page="about"] .about-text {
-  max-width: 38ch;
-  margin: 0 0 1.25rem;
-  font-size: clamp(1rem, 1.23vw, 1.42rem);
-  line-height: 1.17;
+  max-width: 31ch;
+  margin: 0 0 1.15rem;
+  font-size: clamp(1rem, 1.23vw, 1.28rem);
+  line-height: 1.28;
+  letter-spacing: -0.01em;
+}
+
+body[data-page="about"] .about-contact-below {
+  position: absolute;
+  z-index: 3;
+  top: clamp(20rem, 29vw, 31rem);
+  left: calc(50.2% - clamp(9.5rem, 11vw, 12rem));
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.8rem;
+  padding: 0.1rem 1.25rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  color: var(--color-accent);
+  font-size: clamp(1.05rem, 1.3vw, 1.5rem);
+  font-style: italic;
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  text-decoration: none;
+  transform: rotate(-10deg);
+}
+
+body[data-page="about"] .about-contact-below:focus-visible {
+  outline: 2px solid var(--black);
+  outline-offset: 4px;
 }
 
 body[data-page="about"] .about-bio--en .about-text {
@@ -1202,6 +1246,8 @@ body[data-page="about"] .about-details {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   min-height: 0;
   border-color: var(--color-accent);
+  margin-top: clamp(4rem, 6.2vw, 6.25rem);
+  border-bottom: 1px solid var(--color-accent);
 }
 
 body[data-page="about"] .about-contact,
@@ -1210,21 +1256,23 @@ body[data-page="about"] .about-professional {
 }
 
 body[data-page="about"] .about-contact {
-  display: flex;
-  min-height: clamp(520px, 49vw, 770px);
-  flex-direction: column;
-  justify-content: space-between;
+  position: relative;
+  display: block;
+  min-height: clamp(370px, 31vw, 500px);
   border-right: 1px solid var(--color-accent);
   color: var(--color-accent);
 }
 
 body[data-page="about"] .about-location {
   margin: 0;
-  font-size: clamp(3.1rem, 5vw, 6.2rem);
+  max-width: 15ch;
+  margin-left: auto;
+  text-align: right;
+  font-size: clamp(3rem, 4.1vw, 5.1rem);
   font-style: italic;
-  font-weight: 300;
+  font-weight: 200;
   line-height: 0.94;
-  letter-spacing: -0.065em;
+  letter-spacing: -0.055em;
 }
 
 body[data-page="about"] .about-location span {
@@ -1232,9 +1280,19 @@ body[data-page="about"] .about-location span {
 }
 
 body[data-page="about"] .about-socials {
-  display: grid;
+  display: none;
   justify-items: start;
   gap: 0.15em;
+}
+
+body[data-page="about"] .about-location-arrow {
+  position: absolute;
+  right: clamp(2.5rem, 5vw, 6.5rem);
+  bottom: clamp(2.5rem, 4vw, 5rem);
+  color: var(--black);
+  font-size: clamp(3.5rem, 5vw, 5.5rem);
+  font-weight: 300;
+  line-height: 0.8;
 }
 
 body[data-page="about"] .about-social-link {
@@ -1266,7 +1324,7 @@ body[data-page="about"] .about-section-arrow {
   display: block;
   margin: -0.12em 0 0.2em;
   color: var(--color-accent);
-  font-size: clamp(3.5rem, 4.6vw, 6rem);
+  font-size: clamp(3.5rem, 4.6vw, 5.5rem);
   font-weight: 300;
   line-height: 0.82;
 }
@@ -1307,17 +1365,18 @@ body[data-page="about"] a.about-professional-item__title {
 
 @media (max-width: 900px) {
   body[data-page="about"] .about-intro {
-    width: min(720px, calc(100% - 3rem));
     grid-template-columns: 1fr;
-    gap: clamp(3rem, 8vw, 5rem);
+    padding-top: 7rem;
   }
 
   body[data-page="about"] .about-portrait-wrap {
-    height: min(116vw, 760px);
+    height: min(118vw, 760px);
+    margin: 0 clamp(1.5rem, 9vw, 5rem);
   }
 
   body[data-page="about"] .about-copy {
-    padding-top: 0;
+    max-width: 42rem;
+    padding: 4rem clamp(1.5rem, 11vw, 8rem);
   }
 
   body[data-page="about"] .about-text {
@@ -1326,6 +1385,7 @@ body[data-page="about"] a.about-professional-item__title {
 
   body[data-page="about"] .about-details {
     grid-template-columns: 1fr;
+    margin-top: 2rem;
   }
 
   body[data-page="about"] .about-contact {
@@ -1333,31 +1393,37 @@ body[data-page="about"] a.about-professional-item__title {
     border-right: 0;
     border-bottom: 1px solid var(--color-accent);
   }
+
+  body[data-page="about"] .about-contact-below {
+    top: min(87vw, 34rem);
+    left: auto;
+    right: clamp(2rem, 10vw, 6rem);
+  }
 }
 
 @media (max-width: 600px) {
   body[data-page="about"] .about-intro {
-    width: calc(100% - 2rem);
-    padding: 3rem 0 4.5rem;
+    padding-top: 5.25rem;
   }
 
   body[data-page="about"] .about-portrait-wrap {
-    height: min(130vw, 620px);
+    height: min(136vw, 600px);
+    margin: 0 1rem;
   }
 
   body[data-page="about"] .about-kicker,
   body[data-page="about"] .about-title {
-    left: 27%;
+    left: 22%;
   }
 
   body[data-page="about"] .about-kicker {
-    top: -0.3rem;
-    font-size: clamp(3.3rem, 15vw, 4.9rem);
+    top: -4.2rem;
+    font-size: clamp(3.7rem, 15vw, 4.8rem);
   }
 
   body[data-page="about"] .about-title {
-    top: clamp(2.7rem, 12vw, 4rem);
-    font-size: clamp(3.8rem, 16vw, 5.4rem);
+    top: 0.45rem;
+    font-size: clamp(3.75rem, 15vw, 4.8rem);
   }
 
   body[data-page="about"] .about-text {
@@ -1376,6 +1442,23 @@ body[data-page="about"] a.about-professional-item__title {
 
   body[data-page="about"] .about-location {
     font-size: clamp(2.7rem, 13vw, 4.4rem);
+  }
+
+  body[data-page="about"] .about-copy {
+    padding: 3.5rem 1.5rem;
+  }
+
+  body[data-page="about"] .about-contact-below {
+    top: min(93vw, 22rem);
+    right: 1.5rem;
+    min-height: 2.35rem;
+    padding-inline: 0.9rem;
+    font-size: 0.92rem;
+  }
+
+  body[data-page="about"] .about-location-arrow {
+    right: 1rem;
+    bottom: 2rem;
   }
 
   body[data-page="about"] .about-social-link {
@@ -1702,7 +1785,7 @@ body[data-page="about"] a.about-professional-item__title {
 /* 10. NOVA DIREÇÃO EDITORIAL */
 
 :root {
-  --red: #df594d;
+  --red: #D85D4D;
   --paper: #f7f7f4;
   --border: var(--red);
   --header-height: 58px;
@@ -1803,26 +1886,52 @@ body {
 .home-hero__intro {
   position: absolute;
   top: 27%;
-  left: -2%;
+  left: -9%;
   z-index: 3;
   color: var(--color-accent);
-  line-height: 0.85;
-  pointer-events: none;
+  line-height: 0.88;
 }
 
 .home-hero__intro span {
   display: block;
-  font-size: clamp(4rem, 6.4vw, 9rem);
+  font-family: var(--font-sans);
+  font-size: clamp(4rem, 5.25vw, 7.5rem);
   font-style: italic;
-  font-weight: 300;
+  font-weight: 100;
   letter-spacing: -0.07em;
 }
 
 .home-hero__intro strong {
   display: block;
-  font-size: clamp(4.5rem, 7.25vw, 9rem);
-  font-weight: 500;
+  font-family: var(--font-sans);
+  font-size: clamp(4rem, 5.25vw, 7.5rem);
+  font-style: italic;
+  font-weight: 300;
   letter-spacing: -0.075em;
+}
+
+.home-hero__contact {
+  display: inline-block;
+  margin-top: clamp(2rem, 3.6vw, 4rem);
+  margin-left: 0.1em;
+  padding: 0.22em 0.85em 0.26em;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  color: var(--color-accent);
+  font-family: var(--font-sans);
+  font-size: clamp(1rem, 1.4vw, 1.8rem);
+  font-style: italic;
+  font-weight: 300;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  transform: rotate(-8deg);
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.home-hero__contact:hover,
+.home-hero__contact:focus-visible {
+  background: var(--color-accent);
+  color: var(--paper);
 }
 
 .home-hero__location {
@@ -1831,7 +1940,7 @@ body {
   bottom: clamp(1.25rem, 5vh, 4rem);
   z-index: 4;
   margin: 0;
-  color: var(--color-accent);
+  color: var(--black);
   font-size: clamp(0.9rem, 1.25vw, 1.35rem);
   font-style: italic;
   line-height: 1.25;
@@ -1862,7 +1971,7 @@ body {
 
   .home-hero__intro {
     top: 13%;
-    left: -0.2rem;
+    left: -0.5rem;
   }
 
   .home-hero__intro span {
@@ -1870,7 +1979,12 @@ body {
   }
 
   .home-hero__intro strong {
-    font-size: clamp(3.5rem, 18.5vw, 5.3rem);
+    font-size: clamp(3.1rem, 15.5vw, 4.5rem);
+  }
+
+  .home-hero__contact {
+    margin-top: 1.65rem;
+    font-size: 1rem;
   }
 
   .home-hero__location {

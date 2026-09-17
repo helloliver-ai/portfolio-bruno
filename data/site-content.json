@@ -65,6 +65,20 @@
         "period": "2021 - now",
         "url": "",
         "order": 1
+      },
+      {
+        "institution": "Estúdio Exemplo ↗",
+        "role": "Designer",
+        "period": "2023 - 2024",
+        "url": "",
+        "order": 2
+      },
+      {
+        "institution": "Projeto Cultural ↗",
+        "role": "Direção de Arte",
+        "period": "2022 - 2023",
+        "url": "",
+        "order": 3
       }
     ],
     "education": [
