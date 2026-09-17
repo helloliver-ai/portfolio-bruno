@@ -1092,6 +1092,10 @@ body[data-page="work"] .site-footer {
 
 body[data-page="about"] {
   --color-accent: var(--red);
+  --about-grid-line: 1px solid var(--red);
+  --about-photo-top: clamp(8.5rem, 10vw, 10rem);
+  --about-left-guide: clamp(1rem, 9.1vw, 9.25rem);
+  --about-right-guide: 50.2%;
 }
 
 html:has(body[data-page="about"]) {
@@ -1100,7 +1104,7 @@ html:has(body[data-page="about"]) {
 
 body[data-page="about"] .portfolio-header {
   border-top: 0;
-  border-bottom-color: var(--color-accent);
+  border-bottom: var(--about-grid-line);
 }
 
 body[data-page="about"] .portfolio-nav__link {
@@ -1109,7 +1113,29 @@ body[data-page="about"] .portfolio-nav__link {
 }
 
 body[data-page="about"] .about-layout {
+  position: relative;
   overflow: clip;
+}
+
+body[data-page="about"] .about-layout::before,
+body[data-page="about"] .about-layout::after {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: var(--about-grid-line);
+  content: "";
+  pointer-events: none;
+}
+
+body[data-page="about"] .about-layout::before {
+  left: var(--about-left-guide);
+}
+
+body[data-page="about"] .about-layout::after {
+  top: var(--about-photo-top);
+  left: var(--about-right-guide);
 }
 
 body[data-page="about"] .about-intro {
@@ -1118,20 +1144,29 @@ body[data-page="about"] .about-intro {
   gap: 0;
   width: 100%;
   margin: 0;
-  padding: clamp(8.5rem, 10vw, 10rem) 0 0;
-  border-top: 1px solid var(--color-accent);
+  padding: var(--about-photo-top) 0 0;
+  border-top: 0;
+}
+
+body[data-page="about"] .about-intro::before {
+  position: absolute;
+  z-index: 2;
+  top: var(--about-photo-top);
+  right: 0;
+  left: 0;
+  border-top: var(--about-grid-line);
+  content: "";
+  pointer-events: none;
 }
 
 body[data-page="about"] .about-portrait-wrap {
   box-sizing: border-box;
   min-height: 0;
   height: clamp(690px, 62vw, 1000px);
-  margin-left: clamp(1rem, 9.1vw, 9.25rem);
+  margin-left: var(--about-left-guide);
   padding: 0;
   overflow: visible;
-  border-right: 1px solid var(--color-accent);
-  border-bottom: 1px solid var(--color-accent);
-  border-left: 1px solid var(--color-accent);
+  border-bottom: var(--about-grid-line);
 }
 
 body[data-page="about"] .about-portrait {
@@ -1243,11 +1278,11 @@ body[data-page="about"] .about-bio--pt .about-text {
 }
 
 body[data-page="about"] .about-details {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 50.2%) minmax(0, 49.8%);
   min-height: 0;
-  border-color: var(--color-accent);
   margin-top: clamp(4rem, 6.2vw, 6.25rem);
-  border-bottom: 1px solid var(--color-accent);
+  border-top: var(--about-grid-line);
+  border-bottom: var(--about-grid-line);
 }
 
 body[data-page="about"] .about-contact,
@@ -1259,7 +1294,7 @@ body[data-page="about"] .about-contact {
   position: relative;
   display: block;
   min-height: clamp(370px, 31vw, 500px);
-  border-right: 1px solid var(--color-accent);
+  border-right: 0;
   color: var(--color-accent);
 }
 
@@ -1364,6 +1399,12 @@ body[data-page="about"] a.about-professional-item__title {
 }
 
 @media (max-width: 900px) {
+  body[data-page="about"] {
+    --about-photo-top: 7rem;
+    --about-left-guide: clamp(1.5rem, 9vw, 5rem);
+    --about-right-guide: calc(100% - clamp(1.5rem, 9vw, 5rem));
+  }
+
   body[data-page="about"] .about-intro {
     grid-template-columns: 1fr;
     padding-top: 7rem;
@@ -1371,7 +1412,7 @@ body[data-page="about"] a.about-professional-item__title {
 
   body[data-page="about"] .about-portrait-wrap {
     height: min(118vw, 760px);
-    margin: 0 clamp(1.5rem, 9vw, 5rem);
+    margin: 0 var(--about-left-guide);
   }
 
   body[data-page="about"] .about-copy {
@@ -1402,13 +1443,19 @@ body[data-page="about"] a.about-professional-item__title {
 }
 
 @media (max-width: 600px) {
+  body[data-page="about"] {
+    --about-photo-top: 5.25rem;
+    --about-left-guide: 1rem;
+    --about-right-guide: calc(100% - 1rem);
+  }
+
   body[data-page="about"] .about-intro {
     padding-top: 5.25rem;
   }
 
   body[data-page="about"] .about-portrait-wrap {
     height: min(136vw, 600px);
-    margin: 0 1rem;
+    margin: 0 var(--about-left-guide);
   }
 
   body[data-page="about"] .about-kicker,
