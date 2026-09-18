@@ -7,6 +7,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     const content = await loadSiteContent();
 
+    if (getCurrentPage() === "about") {
+      renderAbout(content.about, content.site);
+      return;
+    }
+
     renderSharedLayout(content);
     renderCurrentPage(content);
   } catch (error) {
@@ -151,9 +156,6 @@ function renderCurrentPage(content) {
     return;
   }
 
-  if (page === "about") {
-    renderAbout(content.about);
-  }
 }
 
 function renderHome(home) {
@@ -169,31 +171,205 @@ function renderHome(home) {
   }
 }
 
-function renderAbout(about) {
-  const title = document.getElementById("about-title");
-  const textContainer = document.getElementById("about-text");
+function renderAbout(about, site) {
+  const page = document.getElementById("about-page");
 
-  document.title = `About | ${about.title === "ABOUT" ? "Bruno Oliveira" : about.title}`;
-
-  if (title) {
-    title.textContent = about.title;
-  }
-
-  if (!textContainer) {
+  if (!page) {
     return;
   }
 
-  const fragment = document.createDocumentFragment();
+  document.title = "About | Bruno Oliveira";
 
-  about.paragraphs.forEach((paragraph) => {
-    const text = document.createElement("p");
+  const canvas = createElement("section", "about-canvas");
+  const navigation = createAboutNavigation(about.navigation || site.navigation || []);
+  const photo = createElement("figure", "about-photo");
+  const image = document.createElement("img");
+  const hero = createElement("h1", "about-hero");
 
-    text.className = "about-text";
-    text.textContent = paragraph;
-    fragment.appendChild(text);
+  image.src = about.photo;
+  image.alt = about.photoAlt;
+  photo.appendChild(image);
+
+  hero.append(
+    createElement("span", "about-hero__eyebrow", about.hero.eyebrow),
+    document.createTextNode(" "),
+    createElement("span", "about-hero__name", about.hero.name)
+  );
+
+  canvas.append(
+    navigation,
+    createAboutRules(),
+    photo,
+    hero,
+    createAboutBio("en", about.bio.en),
+    createAboutBio("pt", about.bio.pt),
+    createAboutPill("about-contact-below", about.ctas.contactBelow),
+    createAboutContact(about.contact),
+    createAboutExperience(about.experience),
+    createAboutEducation(about.education),
+    createAboutPill("about-create", about.ctas.create),
+    createAboutSocials(about.socials),
+    createAboutScrollControl(),
+    createElement("p", "about-email", about.contact.email)
+  );
+
+  page.replaceChildren(canvas);
+}
+
+function createAboutNavigation(items) {
+  const navigation = createElement("nav", "about-navigation");
+
+  navigation.setAttribute("aria-label", "Navegação principal");
+
+  items.forEach((item) => {
+    const link = document.createElement("a");
+
+    link.className = `about-navigation__link about-navigation__link--${item.page}`;
+    link.href = item.url;
+    link.textContent = item.label;
+
+    if (item.page === "about") {
+      link.setAttribute("aria-current", "page");
+    }
+
+    navigation.appendChild(link);
   });
 
-  textContainer.replaceChildren(fragment);
+  return navigation;
+}
+
+function createAboutRules() {
+  const rules = createElement("div", "about-rules");
+  const names = [
+    "top",
+    "navigation",
+    "intro",
+    "photo-column",
+    "main-column",
+    "navigation-left",
+    "navigation-right",
+    "profile-bottom",
+    "experience-top",
+    "experience-bottom",
+    "social-bottom",
+    "page-bottom",
+  ];
+
+  names.forEach((name) => {
+    rules.appendChild(createElement("span", `about-rule about-rule--${name}`));
+  });
+
+  return rules;
+}
+
+function createAboutBio(language, content) {
+  const bio = createElement("article", `about-bio about-bio--${language}`);
+  const first = document.createElement("p");
+  const label = createElement("strong", "about-bio__label", content.label);
+  const lead = document.createTextNode(` ${content.lead}`);
+  const second = createElement("p", "", content.detail);
+
+  first.append(label, lead);
+  bio.append(first, second);
+  return bio;
+}
+
+function createAboutPill(className, label) {
+  const wrapper = createElement("div", `about-pill ${className}`);
+  const pill = createElement("div", "about-pill__shape");
+  const text = createElement("span", "about-pill__text", label);
+
+  pill.appendChild(text);
+  wrapper.appendChild(pill);
+  return wrapper;
+}
+
+function createAboutContact(contactData) {
+  const contact = createElement("p", "about-contact");
+
+  contact.append(
+    document.createTextNode(`/${contactData.role}`),
+    document.createElement("br"),
+    document.createTextNode(contactData.city),
+    document.createElement("br"),
+    document.createTextNode(contactData.region)
+  );
+
+  return contact;
+}
+
+function createAboutExperience(experience) {
+  const section = createElement("section", "about-experience");
+  const heading = createAboutSectionHeading(experience.title, experience.translation);
+  const entries = createElement("div", "about-experience__entries");
+
+  experience.entries.forEach((entry) => {
+    const item = createElement("article", "about-experience__entry");
+
+    item.append(
+      createElement("p", "about-experience__company", `${entry.company}↗`),
+      createElement("p", "", entry.role),
+      createElement("p", "", entry.period)
+    );
+    entries.appendChild(item);
+  });
+
+  section.append(heading, entries);
+  return section;
+}
+
+function createAboutEducation(education) {
+  const section = createElement("section", "about-education");
+  const heading = createAboutSectionHeading(education.title, education.translation);
+
+  section.append(
+    heading,
+    createElement("p", "about-education__course", education.course),
+    createElement("p", "about-education__school", education.school)
+  );
+  return section;
+}
+
+function createAboutSectionHeading(title, translation) {
+  const heading = createElement("h2", "about-section-heading");
+  const arrow = createElement("span", "about-section-heading__arrow", "↓");
+  const label = createElement("span", "about-section-heading__label", title);
+  const secondary = createElement("em", "", ` / ${translation}`);
+
+  heading.append(arrow, label, secondary);
+  return heading;
+}
+
+function createAboutSocials(items) {
+  const socials = createElement("div", "about-socials");
+
+  items.forEach((item) => {
+    socials.appendChild(createElement("p", "about-socials__item", `${item.label}↗`));
+  });
+
+  return socials;
+}
+
+function createAboutScrollControl() {
+  const control = createElement("div", "about-scroll-control");
+
+  control.setAttribute("aria-hidden", "true");
+  control.appendChild(createElement("span", "about-scroll-control__arrow", "↑"));
+  return control;
+}
+
+function createElement(tagName, className = "", text = "") {
+  const element = document.createElement(tagName);
+
+  if (className) {
+    element.className = className;
+  }
+
+  if (text) {
+    element.textContent = text;
+  }
+
+  return element;
 }
 
 function renderWorkPage(work) {
