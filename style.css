@@ -1332,7 +1332,6 @@ body[data-page="about"] .about-location-arrow {
 
 body[data-page="about"] .about-social-link {
   width: fit-content;
-  border-bottom: 2px solid currentColor;
   color: inherit;
   font-size: clamp(2.7rem, 5vw, 6.2rem);
   font-style: italic;
@@ -2148,6 +2147,255 @@ body[data-page="work"] .marquee-wrapper {
 body[data-page="work"] .site-footer {
   border-color: var(--red);
   color: var(--red);
+}
+
+/* 15. ABOUT — frame Figma 18:14 (desktop) */
+
+body[data-page="about"] {
+  min-width: 1440px;
+  background: #fff;
+  color: #000;
+}
+
+body[data-page="about"] .about-page {
+  width: 1440px;
+  min-height: 2264px;
+  margin: 0 auto;
+}
+
+body[data-page="about"] .about-canvas {
+  position: relative;
+  width: 1440px;
+  height: 2264px;
+  overflow: hidden;
+  background: #fff;
+  font-family: "Inter", sans-serif;
+}
+
+body[data-page="about"] .about-navigation {
+  position: absolute;
+  z-index: 3;
+  inset: 0 auto auto 0;
+  width: 1440px;
+  height: 47px;
+}
+
+body[data-page="about"] .about-navigation__link {
+  position: absolute;
+  top: 15px;
+  height: 18px;
+  color: #d85d4d;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+body[data-page="about"] .about-navigation__link--home { left: 297px; }
+body[data-page="about"] .about-navigation__link--work { left: 686px; }
+body[data-page="about"] .about-navigation__link--about { left: 1028px; }
+
+body[data-page="about"] .about-rule {
+  position: absolute;
+  z-index: 1;
+  display: block;
+  background: #d85d4d;
+}
+
+body[data-page="about"] .about-rule--top { inset: 0 auto auto 0; width: 1440px; height: 1px; }
+body[data-page="about"] .about-rule--navigation { top: 47px; left: 0; width: 1440px; height: 1px; }
+body[data-page="about"] .about-rule--intro { top: 190px; left: 0; width: 1440px; height: 1px; }
+body[data-page="about"] .about-rule--photo-column { top: 46px; left: 127px; width: 1px; height: 1416px; }
+body[data-page="about"] .about-rule--main-column { top: 190px; left: 720px; width: 1px; height: 1861px; }
+body[data-page="about"] .about-rule--navigation-left { top: 0; left: 516px; width: 1px; height: 47px; }
+body[data-page="about"] .about-rule--navigation-right { top: 0; left: 915px; width: 1px; height: 47px; }
+body[data-page="about"] .about-rule--profile-bottom { top: 1081px; left: 0; width: 720px; height: 1px; }
+body[data-page="about"] .about-rule--experience-top { top: 1170px; left: 0; width: 1440px; height: 1px; }
+body[data-page="about"] .about-rule--experience-bottom { top: 1462px; left: 0; width: 720px; height: 1px; }
+body[data-page="about"] .about-rule--social-bottom { top: 2051px; left: 0; width: 1440px; height: 1px; }
+body[data-page="about"] .about-rule--page-bottom { top: 2263px; left: 0; width: 1440px; height: 1px; }
+
+body[data-page="about"] .about-photo {
+  position: absolute;
+  z-index: 0;
+  top: 190px;
+  left: 127px;
+  width: 593px;
+  height: 891px;
+  overflow: hidden;
+}
+
+body[data-page="about"] .about-photo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+body[data-page="about"] .about-hero {
+  position: absolute;
+  z-index: 2;
+  top: 93px;
+  left: 360px;
+  width: 450px;
+  height: 425px;
+  margin: 0;
+  color: #d85d4d;
+  font-size: 120px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 94px;
+  letter-spacing: 0;
+}
+
+body[data-page="about"] .about-hero__eyebrow { font-weight: 100; }
+body[data-page="about"] .about-hero__name { font-weight: 400; }
+
+body[data-page="about"] .about-bio {
+  position: absolute;
+  z-index: 2;
+  left: 832px;
+  width: 414px;
+  font-size: 20px;
+  font-weight: 400;
+  line-height: normal;
+  letter-spacing: -0.2px;
+}
+
+body[data-page="about"] .about-bio + .about-bio { margin-top: 0; }
+body[data-page="about"] .about-bio p + p { margin-top: 20px; }
+body[data-page="about"] .about-bio--en { top: 217px; height: 455px; color: #000; font-style: italic; }
+body[data-page="about"] .about-bio--en .about-bio__label { font-weight: 900; }
+body[data-page="about"] .about-bio--pt { top: 701px; height: 407px; color: #d85d4d; font-style: normal; }
+body[data-page="about"] .about-bio--pt .about-bio__label { font-weight: 900; }
+body[data-page="about"] .about-pill { position: absolute; z-index: 2; display: flex; align-items: center; justify-content: center; }
+body[data-page="about"] .about-pill__shape { display: flex; align-items: center; justify-content: center; border: 1px solid #d85d4d; border-radius: 38px; background: #fff; color: #d85d4d; text-align: center; transform: rotate(-9.94deg); }
+body[data-page="about"] .about-pill__text { display: block; font-style: italic; font-weight: 400; }
+body[data-page="about"] .about-contact-below .about-pill__shape { width: 239px; height: 40px; transition: background 0.2s ease, color 0.2s ease; }
+body[data-page="about"] .about-contact-below .about-pill__text { font-size: 20px; line-height: 19px; }
+body[data-page="about"] .about-contact-below { top: 464px; left: 568px; width: 242.317px; height: 80.663px; padding: 0; border: 0; border-radius: 0; color: inherit; font-size: inherit; transform: none; cursor: pointer; }
+body[data-page="about"] .about-contact-below:hover .about-pill__shape,
+
+body[data-page="about"] .about-contact-below:focus-visible .about-pill__shape {
+  background: var(--color-accent);
+  color: var(--paper);
+}
+
+body[data-page="about"] .about-contact {
+  position: absolute;
+  z-index: 2;
+  top: 1206px;
+  left: 121px;
+  display: block;
+  width: 559px;
+  height: 214px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  color: #d85d4d;
+  font-size: 64px;
+  font-style: italic;
+  font-weight: 200;
+  line-height: 68px;
+  letter-spacing: 0;
+  text-align: right;
+}
+
+body[data-page="about"] .about-section-heading { display: flex; flex-wrap: wrap; margin: 0; font-size: 20px; font-weight: 700; line-height: normal; }
+body[data-page="about"] .about-section-heading__arrow { display: block; flex-basis: 100%; height: 77px; color: #d85d4d; font-size: 64px; font-weight: 300; line-height: 64px; }
+body[data-page="about"] .about-section-heading em { font-weight: 400; }
+
+body[data-page="about"] .about-experience,
+body[data-page="about"] .about-education { position: absolute; z-index: 2; top: 1211px; color: #000; }
+body[data-page="about"] .about-experience { left: 832px; width: 286px; height: 664px; }
+body[data-page="about"] .about-education { left: 1121px; width: 229px; height: 212px; }
+body[data-page="about"] .about-experience__entries { margin-top: 13px; font-size: 16px; line-height: normal; }
+body[data-page="about"] .about-experience__entry { margin-bottom: 31px; }
+body[data-page="about"] .about-experience__company { text-decoration: underline; text-underline-offset: 1px; }
+body[data-page="about"] .about-education__course { margin-top: 13px; font-size: 16px; font-style: italic; line-height: normal; }
+body[data-page="about"] .about-education__school { font-size: 16px; font-style: italic; line-height: normal; }
+
+body[data-page="about"] .about-create { top: 1512px; left: 83px; width: 249.521px; height: 121.761px; }
+body[data-page="about"] .about-create .about-pill__shape { width: 239px; height: 81.725px; }
+body[data-page="about"] .about-create .about-pill__text { width: 199px; font-size: 24px; line-height: 21px; }
+
+body[data-page="about"] .about-socials {
+  position: absolute;
+  z-index: 2;
+  top: 1655px;
+  left: 121px;
+  display: block;
+  width: 559px;
+  height: 314px;
+  color: #d85d4d;
+  font-size: 90px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 103px;
+  letter-spacing: 0;
+  text-align: right;
+}
+
+body[data-page="about"] .social-link {
+  position: relative;
+  display: block;
+  width: fit-content;
+  margin: 0 0 0 auto;
+  padding-right: 0.72em;
+
+  color: #d85d4d;
+  font-size: 90px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 103px;
+  letter-spacing: 0;
+  white-space: nowrap;
+
+  background-image: url("assets/icons/arrow-ne.svg");
+  background-repeat: no-repeat;
+  background-position: right center;
+  background-size: 0.56em auto;
+}
+
+body[data-page="about"] .social-link::after {
+  position: absolute;
+  top: calc(100% + 1px);
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background: #d85d4d;
+  content: "";
+}
+
+body[data-page="about"] .about-scroll-control { position: absolute; z-index: 2; top: 1854px; left: 1278px; display: flex; align-items: center; justify-content: center; width: 111px; height: 111px; border: 1px solid #d85d4d; border-radius: 50%; }
+body[data-page="about"] .about-scroll-control__arrow { color: #d85d4d; font-size: 96px; font-weight: 100; line-height: 1; }
+
+body[data-page="about"] .email-contact {
+  position: absolute;
+  z-index: 2;
+  top: 2093px;
+  left: 67px;
+  width: 1307px;
+  margin: 0;
+  color: #d85d4d;
+  font-size: 120px;
+  font-style: italic;
+  font-weight: 300;
+  line-height: 95px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+body[data-page="about"] .email-contact::after {
+  position: absolute;
+  top: 119px;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background: #d85d4d;
+  content: "";
 }
 
 @media (max-width: 700px) {

@@ -7,6 +7,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     const content = await loadSiteContent();
 
+    if (getCurrentPage() === "about") {
+      renderFigmaAbout(content.about, content.site);
+      return;
+    }
+
     renderSharedLayout(content);
     renderCurrentPage(content);
   } catch (error) {
@@ -303,7 +308,7 @@ function createAboutSocial(social) {
   const socialElement = document.createElement(hasUrl ? "a" : "span");
 
   socialElement.className = "about-social-link";
-  socialElement.textContent = `${social.label || "[social]"} ↗`;
+socialElement.textContent = social.label || "[social]";
 
   if (hasUrl) {
     socialElement.href = social.url;
@@ -822,4 +827,217 @@ function updateMarquees() {
     marquee.style.setProperty("--marquee-distance", `${distance}px`);
     marquee.style.setProperty("--marquee-duration", `${Math.max(duration, 1)}s`);
   });
+}
+
+// About desktop: frame 18:14 no Figma. Mantido isolado para não afetar Home/Work.
+function renderFigmaAbout(about, site) {
+  const page = document.getElementById("about-page");
+
+  if (!page) {
+    return;
+  }
+
+  document.title = "About | Bruno Oliveira";
+
+  const canvas = createFigmaElement("section", "about-canvas");
+  const navigation = createFigmaAboutNavigation(about.navigation || site.navigation || []);
+  const photo = createFigmaElement("figure", "about-photo");
+  const image = document.createElement("img");
+  const hero = createFigmaElement("h1", "about-hero");
+
+  image.src = about.photo;
+  image.alt = about.photoAlt;
+  photo.appendChild(image);
+
+  hero.append(
+    createFigmaElement("span", "about-hero__eyebrow", about.hero.eyebrow),
+    document.createTextNode(" "),
+    createFigmaElement("span", "about-hero__name", about.hero.name)
+  );
+
+  const contactBelow = createFigmaAboutPill(
+  "about-contact-below",
+  about.ctas.contactBelow
+);
+
+contactBelow.addEventListener("click", () => {
+  document.querySelector(".about-socials")?.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+});
+
+  canvas.append(
+    navigation,
+    createFigmaAboutRules(),
+    photo,
+    hero,
+    createFigmaAboutBio("en", about.bio.en),
+    createFigmaAboutBio("pt", about.bio.pt),
+    contactBelow,
+    createFigmaAboutContact(about.contact),
+    createFigmaAboutExperience(about.experience),
+    createFigmaAboutEducation(about.education),
+    createFigmaAboutPill("about-create", about.ctas.create),
+    createFigmaAboutSocials(about.socials),
+    createFigmaAboutScrollControl(),
+    createFigmaAboutEmail(about.contact.email)
+  );
+
+  page.replaceChildren(canvas);
+}
+
+function createFigmaAboutNavigation(items) {
+  const navigation = createFigmaElement("nav", "about-navigation");
+
+  navigation.setAttribute("aria-label", "Navegação principal");
+
+  items.forEach((item) => {
+    const link = document.createElement("a");
+
+    link.className = `about-navigation__link about-navigation__link--${item.page}`;
+    link.href = item.url;
+    link.textContent = item.label;
+
+    if (item.page === "about") {
+      link.setAttribute("aria-current", "page");
+    }
+
+    navigation.appendChild(link);
+  });
+
+  return navigation;
+}
+
+function createFigmaAboutRules() {
+  const rules = createFigmaElement("div", "about-rules");
+  const names = [
+    "top", "navigation", "intro", "photo-column", "main-column",
+    "navigation-left", "navigation-right", "profile-bottom", "experience-top",
+    "experience-bottom", "social-bottom", "page-bottom",
+  ];
+
+  names.forEach((name) => {
+    rules.appendChild(createFigmaElement("span", `about-rule about-rule--${name}`));
+  });
+
+  return rules;
+}
+
+function createFigmaAboutBio(language, content) {
+  const bio = createFigmaElement("article", `about-bio about-bio--${language}`);
+  const first = document.createElement("p");
+  const label = createFigmaElement("strong", "about-bio__label", content.label);
+  const lead = document.createTextNode(` ${content.lead}`);
+  const second = createFigmaElement("p", "", content.detail);
+
+  first.append(label, lead);
+  bio.append(first, second);
+  return bio;
+}
+
+function createFigmaAboutPill(className, label) {
+  const wrapper = createFigmaElement("div", `about-pill ${className}`);
+  const pill = createFigmaElement("div", "about-pill__shape");
+  const text = createFigmaElement("span", "about-pill__text", label);
+
+  pill.appendChild(text);
+  wrapper.appendChild(pill);
+  return wrapper;
+}
+
+function createFigmaAboutContact(contactData) {
+  const contact = createFigmaElement("p", "about-contact");
+
+  contact.append(
+    document.createTextNode(`/${contactData.role}`),
+    document.createElement("br"),
+    document.createTextNode(contactData.city),
+    document.createElement("br"),
+    document.createTextNode(contactData.region)
+  );
+
+  return contact;
+}
+
+function createFigmaAboutExperience(experience) {
+  const section = createFigmaElement("section", "about-experience");
+  const heading = createFigmaAboutSectionHeading(experience.title, experience.translation);
+  const entries = createFigmaElement("div", "about-experience__entries");
+
+  experience.entries.forEach((entry) => {
+    const item = createFigmaElement("article", "about-experience__entry");
+
+    item.append(
+      createFigmaElement("p", "about-experience__company", `${entry.company}↗`),
+      createFigmaElement("p", "", entry.role),
+      createFigmaElement("p", "", entry.period)
+    );
+    entries.appendChild(item);
+  });
+
+  section.append(heading, entries);
+  return section;
+}
+
+function createFigmaAboutEducation(education) {
+  const section = createFigmaElement("section", "about-education");
+  const heading = createFigmaAboutSectionHeading(education.title, education.translation);
+
+  section.append(
+    heading,
+    createFigmaElement("p", "about-education__course", education.course),
+    createFigmaElement("p", "about-education__school", education.school)
+  );
+  return section;
+}
+
+function createFigmaAboutSectionHeading(title, translation) {
+  const heading = createFigmaElement("h2", "about-section-heading");
+  const arrow = createFigmaElement("span", "about-section-heading__arrow", "↓");
+  const label = createFigmaElement("span", "about-section-heading__label", title);
+  const secondary = createFigmaElement("em", "", ` / ${translation}`);
+
+  heading.append(arrow, label, secondary);
+  return heading;
+}
+
+function createFigmaAboutSocials(items) {
+  const socials = createFigmaElement("div", "about-socials");
+
+  items.forEach((item) => {
+    socials.appendChild(createFigmaElement("p", "social-link", item.label));
+  });
+
+  return socials;
+}
+
+function createFigmaAboutEmail(email) {
+  const contact = createFigmaElement("p", "email-contact");
+  const text = createFigmaElement("span", "email-contact__text", email);
+
+  contact.appendChild(text);
+  return contact;
+}
+
+function createFigmaAboutScrollControl() {
+  const control = createFigmaElement("div", "about-scroll-control");
+
+  control.setAttribute("aria-hidden", "true");
+  control.appendChild(createFigmaElement("span", "about-scroll-control__arrow", "↑"));
+  return control;
+}
+
+function createFigmaElement(tagName, className = "", text = "") {
+  const element = document.createElement(tagName);
+
+  if (className) {
+    element.className = className;
+  }
+
+  if (text) {
+    element.textContent = text;
+  }
+
+  return element;
 }
