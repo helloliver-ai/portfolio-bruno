@@ -1,33 +1,24 @@
 const CONTENT_URL = "data/site-content.json";
-const MARQUEE_SPEED = 240;
-const MARQUEE_REPEAT_COUNT = 4;
-const PREVIEW_FADE_DELAY = 80;
+const PAGE_NAV_ICON = "assets/icons/page-nav.svg";
+const EXTERNAL_ARROW_ICON = "assets/icons/arrow-ne.svg";
+const DOWN_ARROW_ICON = "assets/icons/arrow-down.svg";
+const WORK_VISIBLE_ROWS = 5;
 
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     const content = await loadSiteContent();
-
-    if (getCurrentPage() === "about") {
-      renderFigmaAbout(content.about, content.site);
-      return;
-    }
-
-    renderSharedLayout(content);
-    renderCurrentPage(content);
+    renderHeader(content.site);
+    renderFooter(content.site);
+    renderPage(content);
   } catch (error) {
     console.error("Não foi possível carregar o conteúdo do site.", error);
+    renderLoadError();
   }
 });
 
 async function loadSiteContent() {
-  const response = await fetch(CONTENT_URL, {
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    throw new Error(`Falha ao carregar ${CONTENT_URL}: ${response.status}`);
-  }
-
+  const response = await fetch(CONTENT_URL, { cache: "no-store" });
+  if (!response.ok) throw new Error(`Falha ao carregar ${CONTENT_URL}: ${response.status}`);
   return response.json();
 }
 
@@ -35,42 +26,28 @@ function getCurrentPage() {
   return document.body.dataset.page || "home";
 }
 
-function renderSharedLayout(content) {
-  renderHeader(content.site);
-  renderFooter(content.site);
+function renderPage(content) {
+  const page = getCurrentPage();
+  if (page === "home") renderHome(content.home, content.site);
+  if (page === "about") renderAbout(content.about, content.site);
+  if (page === "work") renderWork(content.work);
+  if (page === "project") renderProject(content.work);
 }
 
 function renderHeader(site) {
   const header = document.getElementById("site-header");
-
-  if (!header) {
-    return;
-  }
+  if (!header) return;
 
   const currentPage = getCurrentPage();
-  const homeNavigationLabels = {
-    home: "HOME",
-    work: "PROJECTS",
-    about: "ABOUT + CONTACT",
-  };
-  const nav = document.createElement("nav");
-
-  nav.className = "portfolio-nav";
+  const nav = createElement("nav", "portfolio-nav");
   nav.setAttribute("aria-label", "Navegação principal");
 
-  site.navigation.forEach((item) => {
-    const link = document.createElement("a");
-
+  (site.navigation || []).forEach((item) => {
+    const link = createElement("a", "portfolio-nav__link", item.label);
+    const isCurrent = item.page === currentPage ||
+      (currentPage === "project" && item.page === "work");
     link.href = item.url;
-    link.className = "portfolio-nav__link";
-    link.textContent = (currentPage === "home" || currentPage === "work" || currentPage === "about")
-      ? homeNavigationLabels[item.page] || item.label
-      : item.label;
-
-    if (item.page === currentPage || (currentPage === "project" && item.page === "work")) {
-      link.setAttribute("aria-current", "page");
-    }
-
+    if (isCurrent) link.setAttribute("aria-current", "page");
     nav.appendChild(link);
   });
 
@@ -79,965 +56,362 @@ function renderHeader(site) {
 
 function renderFooter(site) {
   const footer = document.getElementById("site-footer");
+  if (!footer) return;
 
-  if (!footer) {
-    return;
-  }
-
-  const currentPage = getCurrentPage();
-  const footerInner = document.createElement("div");
-  const footerLeft = document.createElement("div");
-  const footerLinks = document.createElement("nav");
-  const cta = document.createElement("a");
-
-  footerInner.className = "footer-inner";
-  footerLeft.className = "footer-left";
-  footerLinks.className = "footer-links";
-  footerLinks.setAttribute("aria-label", "Navegação do rodapé");
-
-  footerLeft.append(
-    createFooterText("footer-question", site.footer.question),
-    createFooterText("footer-sub", site.footer.subtitle),
-    createFooterArrow()
-  );
-
-  cta.href = createMailto(site.footer.email, site.footer.emailSubject);
-  cta.className = "footer-cta";
-  cta.id = "contact-email";
-  cta.textContent = site.footer.ctaLabel;
-
-  site.navigation.forEach((item) => {
-    const link = document.createElement("a");
-
-    link.href = item.url;
-    link.className = "footer-nav-link";
-    link.textContent = item.label;
-
-    if (item.page === currentPage) {
-      link.setAttribute("aria-current", "page");
-    }
-
-    footerLinks.appendChild(link);
-  });
-
-  footerInner.append(footerLeft, cta);
-  footer.replaceChildren(footerInner, footerLinks);
+  const email = site.footer?.email || "contato@olabruno.com";
+  const link = createElement("a", "site-footer__email", email);
+  link.href = createMailto(email, site.footer?.emailSubject);
+  footer.replaceChildren(link);
 }
 
-function createFooterText(className, text) {
-  const wrapper = document.createElement("span");
-  const dot = document.createElement("span");
-
-  wrapper.className = className;
-  dot.className = "footer-dot";
-  dot.setAttribute("aria-hidden", "true");
-
-  wrapper.append(dot, document.createTextNode(text));
-  return wrapper;
-}
-
-function createFooterArrow() {
-  const arrow = document.createElement("span");
-
-  arrow.className = "footer-arrow";
-  arrow.setAttribute("aria-hidden", "true");
-  arrow.textContent = "⟵";
-
-  return arrow;
-}
-
-function createMailto(email, subject) {
-  return `mailto:${email}?subject=${encodeURIComponent(subject)}`;
-}
-
-function renderCurrentPage(content) {
-  const page = getCurrentPage();
-
-  if (page === "home") {
-    renderHome(content.home);
-    return;
-  }
-
-  if (page === "work") {
-    renderWorkPage(content.work);
-    return;
-  }
-
-  if (page === "about") {
-    renderAbout(content.about);
-    return;
-  }
-
-  if (page === "project") {
-    renderProjectPage(content.work);
-  }
-}
-
-function renderHome(home) {
+function renderHome(home, site) {
+  const portrait = document.getElementById("portrait-points");
+  const identity = document.getElementById("home-identity");
   const title = document.getElementById("home-hero-title");
-  const portraitContainer = document.getElementById("portrait-points");
 
-  if (title) {
-    title.textContent = home.title;
+  if (portrait) portrait.dataset.image = home.portraitImage || "";
+
+  if (title && home.hero) {
+    const eyebrow = createElement("span", "", home.hero.eyebrow || "hey, I am/");
+    const name = createElement("strong", "", home.hero.name || "olá, sou o bruno =)");
+    title.replaceChildren(eyebrow, name);
   }
 
-  if (portraitContainer) {
-    portraitContainer.dataset.image = home.portraitImage;
-  }
-}
-
-function renderAbout(about) {
-  const title = document.getElementById("about-title");
-  const kicker = document.getElementById("about-kicker");
-  const portrait = document.getElementById("about-portrait");
-  const textContainer = document.getElementById("about-text");
-  const detailsContainer = document.getElementById("about-details");
-
-  document.title = "About | Bruno Oliveira";
-
-  if (portrait && about.portrait) {
-    portrait.src = about.portrait.src || portrait.src;
-    portrait.alt = about.portrait.alt || portrait.alt;
-  }
-
-  if (kicker) {
-    kicker.textContent = about.headline?.kicker || "[headline kicker]";
-  }
-
-  if (title) {
-    const lines = about.headline?.lines || ["[headline]"];
-    const fragment = document.createDocumentFragment();
-
+  if (identity) {
+    const email = site.footer?.email || "contato@olabruno.com";
+    const lines = home.identity || ["graphic designer", email, "19° 55' S 43° 56' O"];
     lines.forEach((line, index) => {
-      const lineElement = document.createElement("span");
-
-      lineElement.className = "about-title__line";
-      if (index === 0 && line.startsWith("am/ ")) {
-        const prefix = document.createElement("span");
-
-        prefix.className = "about-title__prefix";
-        prefix.textContent = "am/ ";
-        lineElement.append(prefix, document.createTextNode(line.slice(4)));
+      if (index === 1 && line.includes("@")) {
+        const emailLink = createElement("a", "", line);
+        emailLink.href = createMailto(line);
+        identity.appendChild(emailLink);
       } else {
-        lineElement.textContent = line;
+        identity.appendChild(document.createTextNode(line));
       }
-      fragment.appendChild(lineElement);
+      if (index < lines.length - 1) identity.appendChild(document.createElement("br"));
     });
-
-    title.replaceChildren(fragment);
-  }
-
-  if (textContainer) {
-    const fragment = document.createDocumentFragment();
-
-    fragment.append(
-      createAboutBio("en", about.biography?.en),
-      createAboutBio("pt", about.biography?.pt)
-    );
-    textContainer.replaceChildren(fragment);
-  }
-
-  if (detailsContainer) {
-    detailsContainer.replaceChildren(createAboutDetails(about));
   }
 }
 
-function createAboutBio(language, paragraphs) {
-  const section = document.createElement("section");
-  const label = document.createElement("span");
-  const copy = Array.isArray(paragraphs) && paragraphs.length
-    ? paragraphs
-    : ["[Placeholder — adicionar biografia.]"];
+function renderAbout(about, site) {
+  const root = document.getElementById("about-page");
+  if (!root) return;
 
-  section.className = `about-bio about-bio--${language}`;
-  label.className = "about-bio__label";
-  label.textContent = language.toUpperCase();
-  section.appendChild(label);
+  const intro = createElement("section", "about-intro");
+  const title = createElement("h1", "about-hero-title");
+  const eyebrow = createElement("span", "about-hero-title__eyebrow", about.hero?.eyebrow || "");
+  const name = createElement("strong", "about-hero-title__name", about.hero?.name || "");
+  const photo = createElement("figure", "about-photo");
+  const image = document.createElement("img");
+  const bios = createElement("div", "about-bios");
+  const contactBelow = createElement("button", "pill-button about-contact-below", about.ctas?.contactBelow || "CONTACT BELOW ↓");
 
-  copy.forEach((paragraph) => {
-    const text = document.createElement("p");
-
-    text.className = "about-text";
-    text.textContent = paragraph;
-    section.appendChild(text);
+  title.append(eyebrow, name);
+  image.src = about.photo || "";
+  image.alt = about.photoAlt || "";
+  photo.appendChild(image);
+  bios.append(createBiography("en", about.bio?.en), createBiography("pt", about.bio?.pt));
+  contactBelow.type = "button";
+  contactBelow.addEventListener("click", () => {
+    document.getElementById("contact")?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
+  intro.append(photo, title, bios, contactBelow);
 
+  const lower = createElement("section", "about-lower");
+  const contactColumn = createElement("div", "about-contact-column");
+  const identity = createAboutIdentity(about.contact);
+  const createCta = createElement("a", "pill-button about-create-cta", about.ctas?.create || "");
+  const socialList = createSocialList(about.socials || []);
+  const backTop = createPageNavLink("#top", "up", "Voltar ao topo");
+  const professional = createElement("div", "about-professional");
+
+  createCta.href = createMailto(about.contact?.email || site.footer?.email, "Vamos criar algo juntos");
+  backTop.classList.add("about-back-top");
+  professional.append(createExperience(about.experience), createEducation(about.education));
+  contactColumn.append(identity, createCta, socialList, backTop);
+  lower.append(contactColumn, professional);
+  root.replaceChildren(intro, lower);
+}
+
+function createBiography(language, content = {}) {
+  const article = createElement("article", `about-bio about-bio--${language}`);
+  const first = document.createElement("p");
+  const label = createElement("strong", "about-bio__label", content.label || language.toUpperCase());
+  const second = createElement("p", "", content.detail || "");
+  first.append(label, document.createTextNode(content.lead ? ` ${content.lead}` : ""));
+  article.append(first, second);
+  return article;
+}
+
+function createAboutIdentity(contact = {}) {
+  const identity = createElement("p", "about-identity");
+  const lines = [`/${contact.role || ""}`, contact.city || "", contact.region || ""];
+  lines.forEach((line, index) => {
+    identity.appendChild(document.createTextNode(line));
+    if (index < lines.length - 1) identity.appendChild(document.createElement("br"));
+  });
+  return identity;
+}
+
+function createSocialList(socials) {
+  const list = createElement("div", "about-socials");
+  list.id = "contact";
+
+  socials.forEach((social) => {
+    const item = createElement("div", "social-item");
+    const label = createElement(social.url ? "a" : "span", "social-item__link");
+    label.append(document.createTextNode(social.label || ""), createExternalArrow());
+    if (social.url) {
+      label.href = social.url;
+      label.target = "_blank";
+      label.rel = "noreferrer";
+    }
+    item.appendChild(label);
+    list.appendChild(item);
+  });
+  return list;
+}
+
+function createExperience(experience = {}) {
+  const section = createElement("section", "about-experience");
+  section.appendChild(createSectionHeading(experience.title || "experiência", experience.translation || "experience"));
+
+  (experience.entries || []).forEach((entry) => {
+    const item = createElement("article", "experience-item");
+    const company = createElement(entry.url ? "a" : "span", "experience-item__company");
+    company.append(document.createTextNode(entry.company || ""), createExternalArrow());
+    if (entry.url) {
+      company.href = entry.url;
+      company.target = "_blank";
+      company.rel = "noreferrer";
+    }
+    item.append(company, createElement("p", "", entry.role || ""), createElement("p", "", entry.period || ""));
+    section.appendChild(item);
+  });
   return section;
 }
 
-function createAboutDetails(about) {
-  const fragment = document.createDocumentFragment();
-  const contact = document.createElement("div");
-  const location = document.createElement("p");
-  const socials = document.createElement("div");
-  const professional = document.createElement("div");
-
-  contact.className = "about-contact";
-  contact.id = "contact";
-  location.className = "about-location";
-  location.replaceChildren(...(about.location || ["[location]"]).map((line) => {
-    const lineElement = document.createElement("span");
-
-    lineElement.textContent = line;
-    return lineElement;
-  }));
-
-  socials.className = "about-socials";
-  (about.socialLinks || []).forEach((social) => {
-    socials.appendChild(createAboutSocial(social));
-  });
-  const locationArrow = document.createElement("span");
-
-  locationArrow.className = "about-location-arrow";
-  locationArrow.setAttribute("aria-hidden", "true");
-  locationArrow.textContent = "↓";
-  contact.append(location, locationArrow, socials);
-
-  professional.className = "about-professional";
-  professional.append(
-    createAboutProfessionalColumn("experiência", "experience", about.experience || [], "experience"),
-    createAboutProfessionalColumn("educação", "education", about.education || [], "education")
+function createEducation(education = {}) {
+  const section = createElement("section", "about-education");
+  section.append(
+    createSectionHeading(education.title || "educação", education.translation || "education"),
+    createElement("p", "about-education__course", education.course || ""),
+    createElement("p", "about-education__school", education.school || "")
   );
-
-  fragment.append(contact, professional);
-  return fragment;
+  return section;
 }
 
-function createAboutSocial(social) {
-  const hasUrl = Boolean(social.url);
-  const socialElement = document.createElement(hasUrl ? "a" : "span");
+function createSectionHeading(primary, secondary) {
+  const heading = createElement("h2", "section-heading");
+  const arrow = createElement("span", "section-heading__arrow");
+  const icon = document.createElement("img");
+  icon.src = DOWN_ARROW_ICON;
+  icon.alt = "";
+  icon.width = 92;
+  icon.height = 106;
+  arrow.appendChild(icon);
+  heading.append(arrow, document.createTextNode(primary), createElement("em", "", ` / ${secondary}`));
+  return heading;
+}
 
-  socialElement.className = "about-social-link";
-socialElement.textContent = social.label || "[social]";
+function renderWork(work) {
+  const root = document.getElementById("work-page");
+  if (!root) return;
 
-  if (hasUrl) {
-    socialElement.href = social.url;
-    socialElement.target = "_blank";
-    socialElement.rel = "noreferrer";
+  const intro = createElement("section", "work-intro");
+  const archiveLink = createElement("a", "pill-button work-archive-link", work.archiveLabel || "ARCHIVES↓");
+  const title = createElement("h1", "work-title");
+  archiveLink.href = "#project-list";
+  title.append(createElement("span", "", work.titleEn || "Projects/"), document.createTextNode(" "), createElement("strong", "", work.titlePt || "Projetos"));
+  intro.append(archiveLink, title);
+
+  const board = createElement("section", "work-board");
+  const feature = createElement("figure", "work-feature");
+  const featureImage = document.createElement("img");
+  const list = createElement("div", "work-project-list");
+  const projects = getPublishedProjects(work.projects || []);
+
+  featureImage.src = work.featureImage || "";
+  featureImage.alt = work.featureImageAlt || "";
+  feature.appendChild(featureImage);
+  list.id = "project-list";
+  list.setAttribute("aria-label", "Projetos");
+  projects.forEach((project) => list.appendChild(createWorkProjectRow(project)));
+  for (let index = projects.length; index < WORK_VISIBLE_ROWS; index += 1) {
+    const emptyRow = createElement("div", "work-project-row work-project-row--empty");
+    emptyRow.setAttribute("aria-hidden", "true");
+    list.appendChild(emptyRow);
+  }
+  board.append(feature, list);
+  root.replaceChildren(intro, board);
+}
+
+function createWorkProjectRow(project) {
+  const row = createElement(project.slug ? "a" : "article", "work-project-row");
+  const meta = createElement("div", "work-project-row__meta");
+  const title = createElement("h2", "work-project-row__title", project.title || "");
+  if (project.slug) row.href = `project.html?slug=${encodeURIComponent(project.slug)}`;
+  meta.append(
+    createElement("span", "", project.client || ""),
+    createElement("span", "", project.projectType || project.category || ""),
+    createElement("span", "", project.year || "")
+  );
+  row.append(meta, title);
+  return row;
+}
+
+function renderProject(work) {
+  const root = document.getElementById("project-root");
+  const projects = getPublishedProjects(work.projects || []);
+  const slug = new URLSearchParams(window.location.search).get("slug");
+  const project = projects.find((item) => item.slug === slug) || projects[0];
+  if (!root) return;
+  if (!project) {
+    root.replaceChildren(createElement("p", "project-empty", "Nenhum projeto publicado."));
+    return;
+  }
+
+  document.title = `${project.title || "Projeto"} | Bruno Oliveira`;
+  const caseStudy = createElement("article", "project-case-study");
+  const media = getProjectMedia(project);
+  caseStudy.append(
+    createMediaSlot(media[0], "project-media-slot project-media-slot--hero"),
+    createProjectSummary(project),
+    createProjectMediaPair(media[1], media[2]),
+    createMediaSlot(media[3], "project-media-slot project-media-slot--wide"),
+    createProjectDetails(project),
+    createProjectNavigation(project, projects)
+  );
+  root.replaceChildren(caseStudy);
+}
+
+function getProjectMedia(project) {
+  const items = [];
+  if (project.coverImage) items.push({ src: project.coverImage, alt: project.coverAlt || project.title || "" });
+  (project.gallery || []).forEach((item) => items.push(item));
+  while (items.length < 4) items.push(null);
+  return items.slice(0, 4);
+}
+
+function createMediaSlot(media, className) {
+  const figure = createElement("figure", className);
+  if (media?.src) {
+    const image = document.createElement("img");
+    image.src = media.src;
+    image.alt = media.alt || "";
+    image.loading = className.includes("hero") ? "eager" : "lazy";
+    image.decoding = "async";
+    figure.appendChild(image);
   } else {
-    socialElement.classList.add("is-unavailable");
-    socialElement.setAttribute("aria-disabled", "true");
+    figure.classList.add("is-empty");
+    figure.setAttribute("aria-label", "Slot de mídia preparado para o CMS");
   }
-
-  return socialElement;
+  return figure;
 }
 
-function createAboutProfessionalColumn(labelPt, labelEn, items, type) {
-  const column = document.createElement("section");
-  const arrow = document.createElement("span");
-  const heading = document.createElement("h2");
-  const list = document.createElement("div");
+function createProjectMediaPair(first, second) {
+  const pair = createElement("div", "project-media-pair");
+  pair.append(createMediaSlot(first, "project-media-slot"), createMediaSlot(second, "project-media-slot"));
+  return pair;
+}
 
-  column.className = "about-professional-column";
-  arrow.className = "about-section-arrow";
-  arrow.setAttribute("aria-hidden", "true");
-  arrow.textContent = "↓";
-  heading.className = "about-professional-heading";
-  heading.append(document.createTextNode(labelPt), document.createTextNode(" / "));
-  const english = document.createElement("em");
-  english.textContent = labelEn;
-  heading.appendChild(english);
-  list.className = "about-professional-list";
-
-  getOrderedItems(items).forEach((item) => {
-    list.appendChild(createAboutProfessionalItem(item, type));
+function createProjectSummary(project) {
+  const summary = createElement("section", "project-summary");
+  const meta = createElement("div", "project-summary__meta");
+  const credits = createElement("button", "project-summary__credits", "full credits↓");
+  credits.type = "button";
+  credits.addEventListener("click", () => {
+    document.getElementById("project-details")?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
-
-  column.append(arrow, heading, list);
-  return column;
+  meta.append(createElement("p", "", project.projectType || project.category || ""), credits);
+  summary.append(createElement("h1", "project-summary__title", project.title || ""), meta);
+  return summary;
 }
 
-function getOrderedItems(items) {
-  return [...items].sort((firstItem, secondItem) => (firstItem.order ?? 0) - (secondItem.order ?? 0));
-}
+function createProjectDetails(project) {
+  const details = createElement("section", "project-details");
+  const credits = createElement("div", "project-credits");
+  const copy = createElement("div", "project-copy");
+  const creditText = createElement("div", "project-credits__content");
+  const en = createElement("article", "project-language project-language--en");
+  const pt = createElement("article", "project-language project-language--pt");
+  details.id = "project-details";
 
-function createAboutProfessionalItem(item, type) {
-  const entry = document.createElement("article");
-  const title = type === "education"
-    ? item.course || "[Placeholder — adicionar curso.]"
-    : item.institution || "[Placeholder — adicionar instituição.]";
-  const titleElement = document.createElement(item.url ? "a" : "strong");
-  const details = type === "experience"
-    ? [item.role, item.period]
-    : [item.institution, item.location, item.period];
-
-  entry.className = "about-professional-item";
-  titleElement.className = "about-professional-item__title";
-  titleElement.textContent = title;
-  if (item.url) {
-    titleElement.href = item.url;
-    titleElement.target = "_blank";
-    titleElement.rel = "noreferrer";
-  }
-  entry.appendChild(titleElement);
-
-  details.filter(Boolean).forEach((detail) => {
-    const line = document.createElement("span");
-
-    line.textContent = detail;
-    entry.appendChild(line);
+  (project.credits || []).forEach((credit) => {
+    const value = createElement("p", "", credit.value || "");
+    if (credit.label) value.dataset.label = credit.label;
+    creditText.appendChild(value);
   });
-
-  return entry;
+  en.append(createElement("strong", "", "EN"), document.createTextNode(project.descriptionEn ? ` ${project.descriptionEn}` : ""));
+  pt.append(createElement("strong", "", "PT"), document.createTextNode(project.descriptionPt ? ` ${project.descriptionPt}` : ""));
+  credits.append(createBilingualHeading("Credits", "créditos"), creditText);
+  copy.append(createBilingualHeading("Projeto", "project"), en, pt);
+  details.append(credits, copy);
+  return details;
 }
 
-function renderWorkPage(work) {
-  renderProjects(getPublishedProjects(work.projects || []));
-  renderArchive(work.archive || [], work.miscUrl);
-  updateMarqueesWhenReady();
-  window.addEventListener("resize", requestMarqueeUpdate);
+function createBilingualHeading(primary, secondary) {
+  const heading = createElement("h2", "bilingual-heading");
+  heading.append(document.createTextNode(primary), createElement("em", "", ` / ${secondary}`));
+  return heading;
+}
+
+function createProjectNavigation(project, projects) {
+  const nav = createElement("nav", "project-navigation");
+  const index = projects.findIndex((item) => item.slug === project.slug);
+  const previous = projects.length > 1 ? projects[(index - 1 + projects.length) % projects.length] : null;
+  const next = projects.length > 1 ? projects[(index + 1) % projects.length] : null;
+  nav.setAttribute("aria-label", "Navegação entre projetos");
+  nav.append(
+    createPageNavLink(previous ? `project.html?slug=${encodeURIComponent(previous.slug)}` : "work.html", "left", previous ? `Projeto anterior: ${previous.title}` : "Voltar para Work"),
+    createPageNavLink("work.html", "up", "Voltar para Work"),
+    createPageNavLink(next ? `project.html?slug=${encodeURIComponent(next.slug)}` : "work.html", "right", next ? `Próximo projeto: ${next.title}` : "Voltar para Work")
+  );
+  return nav;
+}
+
+function createPageNavLink(href, direction, label) {
+  const link = createElement("a", `page-nav page-nav--${direction}`);
+  const image = document.createElement("img");
+  link.href = href;
+  link.setAttribute("aria-label", label);
+  image.src = PAGE_NAV_ICON;
+  image.alt = "";
+  image.width = 92;
+  image.height = 92;
+  link.appendChild(image);
+  return link;
+}
+
+function createExternalArrow() {
+  const image = document.createElement("img");
+  image.className = "external-arrow";
+  image.src = EXTERNAL_ARROW_ICON;
+  image.alt = "";
+  image.width = 57;
+  image.height = 50;
+  return image;
 }
 
 function getPublishedProjects(projects) {
   return projects
     .filter((project) => project.published !== false)
-    .sort((firstProject, secondProject) => {
-      return (firstProject.order ?? Number.MAX_SAFE_INTEGER) -
-        (secondProject.order ?? Number.MAX_SAFE_INTEGER);
-    });
+    .sort((first, second) => (first.order ?? 999) - (second.order ?? 999));
 }
 
-function renderProjects(projects) {
-  const projectsList = document.getElementById("projects-list");
-  const fragment = document.createDocumentFragment();
-
-  if (!projectsList) {
-    return;
-  }
-
-  projects.forEach((project) => {
-    fragment.appendChild(createProjectItem(project));
-  });
-
-  projectsList.replaceChildren(fragment);
+function createMailto(email, subject = "") {
+  const query = subject ? `?subject=${encodeURIComponent(subject)}` : "";
+  return `mailto:${email || "contato@olabruno.com"}${query}`;
 }
 
-function createProjectItem(project) {
-  const item = document.createElement("article");
-  const content = document.createElement("div");
-  const meta = document.createElement("div");
-  const titleRow = document.createElement("div");
-  const bullet = document.createElement("span");
-
-  item.className = "project-item";
-  item.dataset.title = project.title;
-  content.className = "project-item__content";
-
-  meta.className = "project-meta-top";
-  meta.append(
-    createMetaField(project.category),
-    createMetaField(project.client),
-    createProjectStatus(project)
-  );
-
-  titleRow.className = "project-title-row";
-  bullet.className = "project-bullet";
-  bullet.setAttribute("aria-hidden", "true");
-
-  titleRow.append(bullet, createProjectTitle(project));
-  content.append(meta, titleRow);
-  item.append(content, createProjectPreview(project));
-
-  return item;
-}
-
-function createProjectPreview(project) {
-  const preview = document.createElement("aside");
-  const frame = document.createElement("div");
-  const meta = document.createElement("div");
-  const title = document.createElement("h2");
-  const details = document.createElement("p");
-  const image = document.createElement("img");
-  const imageUrl = project.workPreviewImage || project.coverImage || "";
-
-  preview.className = "project-preview";
-  preview.setAttribute("aria-hidden", "true");
-  frame.className = "project-preview__frame";
-  meta.className = "project-preview__meta";
-  title.textContent = project.title || "";
-  details.textContent = [project.category, project.client, project.year].filter(Boolean).join(" · ");
-  image.className = "project-preview__image";
-  image.src = imageUrl;
-  image.alt = "";
-  image.loading = "eager";
-  image.decoding = "async";
-
-  if (!imageUrl) {
-    preview.classList.add("project-preview--empty");
-  }
-
-  meta.append(title, details);
-  frame.append(meta, image);
-  preview.appendChild(frame);
-  return preview;
-}
-
-function createMetaField(text) {
-  const field = document.createElement("span");
-
-  field.className = "meta-field";
-  field.textContent = text || "";
-
-  return field;
-}
-
-function createProjectStatus(project) {
-  const field = document.createElement("span");
-
-  field.className = "meta-field";
-
-  if (project.status === "comingSoon") {
-    const badge = document.createElement("span");
-
-    badge.className = "badge-status";
-    badge.textContent = "ⓒⓞⓜⓘⓝⓖ ⓢⓞⓞⓝ";
-    field.appendChild(badge);
-
-    return field;
-  }
-
-  if (project.badge === "new") {
-    const badge = document.createElement("span");
-
-    badge.className = "badge-new";
-    badge.textContent = "ⓝⓔⓦ";
-    field.append(badge, document.createTextNode(` ${project.year || ""}`));
-
-    return field;
-  }
-
-  field.textContent = project.year || "";
-  return field;
-}
-
-function createProjectTitle(project) {
-  const hasLink = Boolean(project.slug);
-  const titleElement = document.createElement(hasLink ? "a" : "span");
-  const marquee = document.createElement("div");
-
-  titleElement.className = hasLink ? "project-title-link" : "project-title-link no-link";
-  marquee.className = "marquee-wrapper";
-
-  if (hasLink) {
-    titleElement.href = `project.html?slug=${encodeURIComponent(project.slug)}`;
-  }
-
-  for (let index = 0; index < MARQUEE_REPEAT_COUNT; index += 1) {
-    const text = document.createElement("span");
-
-    text.className = "marquee-text";
-    text.textContent = project.title;
-
-    if (index > 0) {
-      text.setAttribute("aria-hidden", "true");
-    }
-
-    marquee.appendChild(text);
-  }
-
-  titleElement.appendChild(marquee);
-  return titleElement;
-}
-
-function renderProjectPage(work) {
-  const root = document.getElementById("project-root");
-  const projects = getPublishedProjects(work.projects || []);
-  const slug = new URLSearchParams(window.location.search).get("slug");
-  const project = projects.find((item) => item.slug === slug);
-
-  if (!root) {
-    return;
-  }
-
-  if (!project) {
-    renderProjectNotFound(root);
-    return;
-  }
-
-  document.title = `${project.title} | Bruno Oliveira`;
-
-  const descriptionMeta = document.querySelector('meta[name="description"]');
-  if (descriptionMeta && project.shortDescription) {
-    descriptionMeta.content = project.shortDescription;
-  }
-
-  if (project.status === "placeholder") {
-    renderProjectPlaceholder(root);
-    return;
-  }
-
-  document.body.classList.remove("project-is-placeholder");
-  root.replaceChildren(createProjectContent(project, projects));
-}
-
-function renderProjectNotFound(root) {
-  document.title = "Projeto não encontrado | Bruno Oliveira";
-  document.body.classList.add("project-is-placeholder");
-
-  const section = document.createElement("section");
-  const title = document.createElement("h1");
-  const link = document.createElement("a");
-
-  section.className = "project-placeholder";
-  title.textContent = "projeto não encontrado";
-  link.href = "work.html";
-  link.textContent = "← voltar para Work";
-  section.append(title, link);
-  root.replaceChildren(section);
-}
-
-function renderProjectPlaceholder(root) {
-  document.body.classList.add("project-is-placeholder");
-
-  const section = document.createElement("section");
-  const title = document.createElement("h1");
-  const link = document.createElement("a");
-
-  section.className = "project-placeholder";
-  title.textContent = "gayzinha, para de procrastinar e vai preparar os seus projetos!";
-  link.href = "work.html";
-  link.textContent = "← voltar para Work";
-  section.append(title, link);
-  root.replaceChildren(section);
-}
-
-function createProjectContent(project, projects) {
-  const article = document.createElement("article");
-  const heading = document.createElement("header");
-  const title = document.createElement("h1");
-  const meta = document.createElement("dl");
-
-  article.className = "project-case-study";
-  heading.className = "project-case-study__header";
-  title.className = "project-case-study__title";
-  title.textContent = project.title;
-  meta.className = "project-case-study__meta";
-
-  appendProjectMeta(meta, "Category / categoria", project.category);
-  appendProjectMeta(meta, "Client / cliente", project.client);
-  appendProjectMeta(meta, "Year / ano", project.year);
-  heading.append(title, meta);
-  article.append(heading);
-
-  if (project.coverImage) {
-    article.append(createProjectImage(project.coverImage, project.title, "project-cover"));
-  }
-
-  if (Array.isArray(project.gallery) && project.gallery.length > 0) {
-    article.append(createProjectGallery(project.gallery));
-  }
-
-  article.append(
-    createProjectDescription(project),
-    createProjectCredits(project.credits || []),
-    createProjectNavigation(project, projects)
-  );
-
-  return article;
-}
-
-function appendProjectMeta(list, label, value) {
-  if (!value) {
-    return;
-  }
-
-  const group = document.createElement("div");
-  const term = document.createElement("dt");
-  const detail = document.createElement("dd");
-
-  term.textContent = label;
-  detail.textContent = value;
-  group.append(term, detail);
-  list.appendChild(group);
-}
-
-function createProjectImage(src, alt, className) {
-  const figure = document.createElement("figure");
-  const image = document.createElement("img");
-
-  figure.className = className;
-  image.src = src;
-  image.alt = alt || "";
-  image.loading = className === "project-cover" ? "eager" : "lazy";
-  image.decoding = "async";
-  figure.appendChild(image);
-
-  return figure;
-}
-
-function createProjectGallery(gallery) {
-  const section = document.createElement("section");
-
-  section.className = "project-gallery";
-  section.setAttribute("aria-label", "Galeria do projeto");
-
-  gallery.forEach((item) => {
-    const media = createProjectImage(item.src, item.alt, "project-media");
-
-    if (item.layout === "full") {
-      media.classList.add("project-media--full");
-    }
-
-    section.appendChild(media);
-  });
-
-  return section;
-}
-
-function createProjectDescription(project) {
-  const section = document.createElement("section");
-  const heading = document.createElement("h2");
-  const english = document.createElement("div");
-  const portuguese = document.createElement("div");
-  const englishLabel = document.createElement("h3");
-  const portugueseLabel = document.createElement("h3");
-  const englishText = document.createElement("p");
-  const portugueseText = document.createElement("p");
-
-  section.className = "project-description";
-  heading.textContent = "The project / O projeto";
-  englishLabel.textContent = "EN";
-  portugueseLabel.textContent = "PT";
-  englishText.textContent = project.descriptionEn || "[Placeholder — add the final English project description.]";
-  portugueseText.textContent = project.descriptionPt || "[Placeholder — adicionar o texto definitivo do projeto em português.]";
-  english.append(englishLabel, englishText);
-  portuguese.append(portugueseLabel, portugueseText);
-  section.append(heading, english, portuguese);
-
-  return section;
-}
-
-function createProjectCredits(credits) {
-  const section = document.createElement("section");
-  const safeCredits = credits.length > 0
-    ? credits
-    : [{ label: "Credits / créditos", value: "[Placeholder — adicionar créditos do projeto.]" }];
-
-  section.className = "project-credits";
-  section.setAttribute("aria-label", "Créditos do projeto");
-
-  safeCredits.forEach((credit) => {
-    const item = document.createElement("div");
-    const label = document.createElement("h2");
-    const value = document.createElement("p");
-
-    label.textContent = credit.label;
-    value.textContent = credit.value;
-    item.append(label, value);
-    section.appendChild(item);
-  });
-
-  return section;
-}
-
-function createProjectNavigation(project, projects) {
-  const nav = document.createElement("nav");
-  const currentIndex = projects.findIndex((item) => item.slug === project.slug);
-  const previousProject = projects[(currentIndex - 1 + projects.length) % projects.length];
-  const nextProject = projects[(currentIndex + 1) % projects.length];
-
-  nav.className = "project-pagination";
-  nav.setAttribute("aria-label", "Navegação entre projetos");
-  nav.append(
-    createProjectNavigationLink(previousProject, "←", "Projeto anterior"),
-    createProjectNavigationLink(null, "↑", "Voltar para Work"),
-    createProjectNavigationLink(nextProject, "→", "Próximo projeto")
-  );
-
-  return nav;
-}
-
-function createProjectNavigationLink(project, arrow, label) {
-  const link = document.createElement("a");
-  const icon = document.createElement("span");
-  const text = document.createElement("span");
-
-  link.href = project
-    ? `project.html?slug=${encodeURIComponent(project.slug)}`
-    : "work.html";
-  link.setAttribute("aria-label", project ? `${label}: ${project.title}` : label);
-  icon.textContent = arrow;
-  text.textContent = label;
-  link.append(icon, text);
-
-  return link;
-}
-
-function renderArchive(items, miscUrl) {
-  const archiveList = document.getElementById("archive-list");
-  const miscLink = document.getElementById("misc-link");
-  const fragment = document.createDocumentFragment();
-
-  if (!archiveList) {
-    return;
-  }
-
-  items.forEach((item) => {
-    const listItem = document.createElement("li");
-    const link = document.createElement("a");
-    const arrow = document.createElement("span");
-    const detail = document.createElement("span");
-
-    link.href = item.url || "#";
-    link.append(document.createTextNode(`${item.title} `));
-
-    arrow.className = "arrow";
-    arrow.setAttribute("aria-hidden", "true");
-    arrow.textContent = "↳";
-
-    detail.className = "archive-detail";
-    detail.textContent = item.detail;
-
-    link.append(arrow, document.createTextNode(" "), detail);
-    listItem.appendChild(link);
-    fragment.appendChild(listItem);
-  });
-
-  archiveList.replaceChildren(fragment);
-
-  if (miscLink) {
-    miscLink.href = miscUrl || "#";
-  }
-}
-
-function updateMarqueesWhenReady() {
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(updateMarquees);
-    return;
-  }
-
-  requestMarqueeUpdate();
-}
-
-function requestMarqueeUpdate() {
-  window.requestAnimationFrame(updateMarquees);
-}
-
-function updateMarquees() {
-  document.querySelectorAll(".marquee-wrapper").forEach((marquee) => {
-    const texts = marquee.querySelectorAll(".marquee-text");
-
-    if (texts.length < 2) {
-      return;
-    }
-
-    const distance = texts[1].offsetLeft - texts[0].offsetLeft;
-    const duration = distance / MARQUEE_SPEED;
-
-    marquee.style.setProperty("--marquee-distance", `${distance}px`);
-    marquee.style.setProperty("--marquee-duration", `${Math.max(duration, 1)}s`);
-  });
-}
-
-// About desktop: frame 18:14 no Figma. Mantido isolado para não afetar Home/Work.
-function renderFigmaAbout(about, site) {
-  const page = document.getElementById("about-page");
-
-  if (!page) {
-    return;
-  }
-
-  document.title = "About | Bruno Oliveira";
-
-  const canvas = createFigmaElement("section", "about-canvas");
-  const navigation = createFigmaAboutNavigation(about.navigation || site.navigation || []);
-  const photo = createFigmaElement("figure", "about-photo");
-  const image = document.createElement("img");
-  const hero = createFigmaElement("h1", "about-hero");
-
-  image.src = about.photo;
-  image.alt = about.photoAlt;
-  photo.appendChild(image);
-
-  hero.append(
-    createFigmaElement("span", "about-hero__eyebrow", about.hero.eyebrow),
-    document.createTextNode(" "),
-    createFigmaElement("span", "about-hero__name", about.hero.name)
-  );
-
-  const contactBelow = createFigmaAboutPill(
-  "about-contact-below",
-  about.ctas.contactBelow
-);
-
-contactBelow.addEventListener("click", () => {
-  document.querySelector(".about-socials")?.scrollIntoView({
-    behavior: "smooth",
-    block: "start"
-  });
-});
-
-  canvas.append(
-    navigation,
-    createFigmaAboutRules(),
-    photo,
-    hero,
-    createFigmaAboutBio("en", about.bio.en),
-    createFigmaAboutBio("pt", about.bio.pt),
-    contactBelow,
-    createFigmaAboutContact(about.contact),
-    createFigmaAboutExperience(about.experience),
-    createFigmaAboutEducation(about.education),
-    createFigmaAboutPill("about-create", about.ctas.create),
-    createFigmaAboutSocials(about.socials),
-    createFigmaAboutScrollControl(),
-    createFigmaAboutEmail(about.contact.email)
-  );
-
-  page.replaceChildren(canvas);
-}
-
-function createFigmaAboutNavigation(items) {
-  const navigation = createFigmaElement("nav", "about-navigation");
-
-  navigation.setAttribute("aria-label", "Navegação principal");
-
-  items.forEach((item) => {
-    const link = document.createElement("a");
-
-    link.className = `about-navigation__link about-navigation__link--${item.page}`;
-    link.href = item.url;
-    link.textContent = item.label;
-
-    if (item.page === "about") {
-      link.setAttribute("aria-current", "page");
-    }
-
-    navigation.appendChild(link);
-  });
-
-  return navigation;
-}
-
-function createFigmaAboutRules() {
-  const rules = createFigmaElement("div", "about-rules");
-  const names = [
-    "top", "navigation", "intro", "photo-column", "main-column",
-    "navigation-left", "navigation-right", "profile-bottom", "experience-top",
-    "experience-bottom", "social-bottom", "page-bottom",
-  ];
-
-  names.forEach((name) => {
-    rules.appendChild(createFigmaElement("span", `about-rule about-rule--${name}`));
-  });
-
-  return rules;
-}
-
-function createFigmaAboutBio(language, content) {
-  const bio = createFigmaElement("article", `about-bio about-bio--${language}`);
-  const first = document.createElement("p");
-  const label = createFigmaElement("strong", "about-bio__label", content.label);
-  const lead = document.createTextNode(` ${content.lead}`);
-  const second = createFigmaElement("p", "", content.detail);
-
-  first.append(label, lead);
-  bio.append(first, second);
-  return bio;
-}
-
-function createFigmaAboutPill(className, label) {
-  const wrapper = createFigmaElement("div", `about-pill ${className}`);
-  const pill = createFigmaElement("div", "about-pill__shape");
-  const text = createFigmaElement("span", "about-pill__text", label);
-
-  pill.appendChild(text);
-  wrapper.appendChild(pill);
-  return wrapper;
-}
-
-function createFigmaAboutContact(contactData) {
-  const contact = createFigmaElement("p", "about-contact");
-
-  contact.append(
-    document.createTextNode(`/${contactData.role}`),
-    document.createElement("br"),
-    document.createTextNode(contactData.city),
-    document.createElement("br"),
-    document.createTextNode(contactData.region)
-  );
-
-  return contact;
-}
-
-function createFigmaAboutExperience(experience) {
-  const section = createFigmaElement("section", "about-experience");
-  const heading = createFigmaAboutSectionHeading(experience.title, experience.translation);
-  const entries = createFigmaElement("div", "about-experience__entries");
-
-  experience.entries.forEach((entry) => {
-    const item = createFigmaElement("article", "about-experience__entry");
-
-    item.append(
-      createFigmaElement("p", "about-experience__company", `${entry.company}↗`),
-      createFigmaElement("p", "", entry.role),
-      createFigmaElement("p", "", entry.period)
-    );
-    entries.appendChild(item);
-  });
-
-  section.append(heading, entries);
-  return section;
-}
-
-function createFigmaAboutEducation(education) {
-  const section = createFigmaElement("section", "about-education");
-  const heading = createFigmaAboutSectionHeading(education.title, education.translation);
-
-  section.append(
-    heading,
-    createFigmaElement("p", "about-education__course", education.course),
-    createFigmaElement("p", "about-education__school", education.school)
-  );
-  return section;
-}
-
-function createFigmaAboutSectionHeading(title, translation) {
-  const heading = createFigmaElement("h2", "about-section-heading");
-  const arrow = createFigmaElement("span", "about-section-heading__arrow", "↓");
-  const label = createFigmaElement("span", "about-section-heading__label", title);
-  const secondary = createFigmaElement("em", "", ` / ${translation}`);
-
-  heading.append(arrow, label, secondary);
-  return heading;
-}
-
-function createFigmaAboutSocials(items) {
-  const socials = createFigmaElement("div", "about-socials");
-
-  items.forEach((item) => {
-    socials.appendChild(createFigmaElement("p", "social-link", item.label));
-  });
-
-  return socials;
-}
-
-function createFigmaAboutEmail(email) {
-  const contact = createFigmaElement("p", "email-contact");
-  const text = createFigmaElement("span", "email-contact__text", email);
-
-  contact.appendChild(text);
-  return contact;
-}
-
-function createFigmaAboutScrollControl() {
-  const control = createFigmaElement("div", "about-scroll-control");
-
-  control.setAttribute("aria-hidden", "true");
-  control.appendChild(createFigmaElement("span", "about-scroll-control__arrow", "↑"));
-  return control;
-}
-
-function createFigmaElement(tagName, className = "", text = "") {
+function createElement(tagName, className = "", text = "") {
   const element = document.createElement(tagName);
-
-  if (className) {
-    element.className = className;
-  }
-
-  if (text) {
-    element.textContent = text;
-  }
-
+  if (className) element.className = className;
+  if (text) element.textContent = text;
   return element;
+}
+
+function renderLoadError() {
+  const root = document.querySelector("main");
+  if (root) root.replaceChildren(createElement("p", "load-error", "Não foi possível carregar esta página."));
 }

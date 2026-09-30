@@ -3,42 +3,30 @@
     "name": "Bruno Oliveira",
     "description": "Portfólio profissional de Bruno Oliveira, designer e diretor de arte.",
     "navigation": [
-      {
-        "label": "HOME",
-        "url": "index.html",
-        "page": "home"
-      },
-      {
-        "label": "WORK",
-        "url": "work.html",
-        "page": "work"
-      },
-      {
-        "label": "ABOUT",
-        "url": "about.html",
-        "page": "about"
-      }
+      { "label": "home", "url": "index.html", "page": "home" },
+      { "label": "work", "url": "work.html", "page": "work" },
+      { "label": "about+contact", "url": "about.html", "page": "about" }
     ],
     "footer": {
-      "question": "DID YOU LIKE IT?",
-      "subtitle": "Gostou dos projetos?",
-      "ctaLabel": "CONTATO@OLABRUNO.COM",
       "email": "contato@olabruno.com",
       "emailSubject": "Olá!"
     }
   },
   "home": {
-    "title": "Bruno Oliveira — designer e diretor de arte",
-    "portraitImage": "assets/images/portrait-source.jpeg"
+    "portraitImage": "assets/images/portrait-source.jpeg",
+    "hero": {
+      "eyebrow": "hey, I am/",
+      "name": "olá, sou o bruno =)"
+    },
+    "identity": [
+      "graphic designer",
+      "contato@olabruno.com",
+      "19° 55' S 43° 56' O"
+    ]
   },
   "about": {
-    "navigation": [
-      { "label": "home", "url": "index.html", "page": "home" },
-      { "label": "projects", "url": "work.html", "page": "work" },
-      { "label": "about+contact", "url": "about.html", "page": "about" }
-    ],
-    "photo": "assets/images/about-portrait.png",
-    "photoAlt": "Retrato de Bruno Oliveira",
+    "photo": "assets/images/about-portrait-current.png",
+    "photoAlt": "Retrato em preto e branco de Bruno Oliveira",
     "hero": {
       "eyebrow": "hey, I am/",
       "name": "olá, sou o bruno"
@@ -70,11 +58,10 @@
       "translation": "experience",
       "entries": [
         { "company": "Instituto Hahaha", "role": "Designer", "period": "2021 - now" },
-        { "company": "Instituto Hahaha", "role": "Designer", "period": "2021 - now" },
-        { "company": "Instituto Hahaha", "role": "Designer", "period": "2021 - now" },
-        { "company": "Instituto Hahaha", "role": "Designer", "period": "2021 - now" },
-        { "company": "Instituto Hahaha", "role": "Designer", "period": "2021 - now" },
-        { "company": "Instituto Hahaha", "role": "Designer", "period": "2021 - now" }
+        { "company": "Integração Escola de Negócios", "role": "Designer", "period": "2021 - now" },
+        { "company": "2simple", "role": "Designer", "period": "2021 - now" },
+        { "company": "Estúdio Ventana", "role": "Designer", "period": "2021 - now" },
+        { "company": "Néos Indústria de Tecnologia", "role": "Designer", "period": "2021 - now" }
       ]
     },
     "education": {
@@ -85,183 +72,43 @@
     },
     "socials": [
       { "label": "WhatsApp" },
+      { "label": "LinkedIn" },
       { "label": "Behance" },
-      { "label": "Linkedin" }
+      { "label": "e-mail", "url": "mailto:contato@olabruno.com" }
     ]
   },
   "work": {
-    "description": "Projetos de design gráfico, identidade visual, direção de arte e design editorial de Bruno Oliveira.",
+    "titleEn": "Projects/",
+    "titlePt": "Projetos",
+    "archiveLabel": "ARCHIVES↓",
+    "featureImage": "assets/images/about-portrait-current.png",
+    "featureImageAlt": "Retrato de Bruno Oliveira",
     "projects": [
       {
         "slug": "instituto-hahaha",
         "title": "Instituto Hahaha 10 anos",
-        "category": "Estratégia, direção de arte e identidade visual",
         "client": "Instituto Hahaha",
-        "year": "[ano a confirmar]",
-        "status": "published",
-        "shortDescription": "Projeto comemorativo dos 10 anos do Instituto Hahaha.",
-        "descriptionPt": "[Placeholder — adicionar o texto definitivo do projeto em português.]",
-        "descriptionEn": "[Placeholder — add the final English project description.]",
+        "projectType": "Strategy, Art Direction, and Visual Identity / Estratégia, Direção de arte e Identidade Visual",
+        "year": "",
         "coverImage": "assets/instituto-hahaha-project-cover.png",
+        "coverAlt": "Projeto Instituto Hahaha 10 anos",
         "gallery": [
           {
             "src": "assets/hahaha-ex1.png",
-            "alt": "Intervenção do Instituto Hahaha em ambiente hospitalar",
-            "layout": "half"
+            "alt": "Intervenção do Instituto Hahaha em ambiente hospitalar"
           },
           {
             "src": "assets/hahaha-ex2.webp",
-            "alt": "Criança e integrante do Instituto Hahaha em ambiente hospitalar",
-            "layout": "half"
+            "alt": "Criança e integrante do Instituto Hahaha em ambiente hospitalar"
           }
         ],
-        "externalUrl": null,
-        "credits": [
-          {
-            "label": "Credits / créditos",
-            "value": "[Placeholder — adicionar créditos do projeto.]"
-          }
-        ],
-        "featured": true,
+        "credits": [],
+        "descriptionPt": "",
+        "descriptionEn": "",
         "order": 1,
-        "published": true,
-        "workPreviewImage": "assets/instituto-hahaha-project-cover.png"
-      },
-      {
-        "slug": "projeto-02",
-        "title": "insira aqui o seu projeto",
-        "category": "[categoria]",
-        "client": "[cliente]",
-        "year": "[ano]",
-        "status": "placeholder",
-        "coverImage": "assets/images/placeholder-2.png",
-        "gallery": [],
-        "featured": false,
-        "order": 2,
-        "published": true,
-        "workPreviewImage": ""
-      },
-      {
-        "slug": "projeto-03",
-        "title": "insira aqui o seu projeto",
-        "category": "[categoria]",
-        "client": "[cliente]",
-        "year": "[ano]",
-        "status": "placeholder",
-        "coverImage": "assets/images/placeholder-3.png",
-        "gallery": [],
-        "featured": false,
-        "order": 3,
-        "published": true,
-        "workPreviewImage": ""
-      },
-      {
-        "slug": "projeto-04",
-        "title": "insira aqui o seu projeto",
-        "category": "[categoria]",
-        "client": "[cliente]",
-        "year": "[ano]",
-        "status": "placeholder",
-        "coverImage": "assets/images/placeholder-4.png",
-        "gallery": [],
-        "featured": false,
-        "order": 4,
-        "published": true,
-        "workPreviewImage": ""
-      },
-      {
-        "slug": "projeto-05",
-        "title": "insira aqui o seu projeto",
-        "category": "[categoria]",
-        "client": "[cliente]",
-        "year": "[ano]",
-        "status": "placeholder",
-        "coverImage": "assets/images/placeholder-1.png",
-        "gallery": [],
-        "featured": false,
-        "order": 5,
-        "published": true,
-        "workPreviewImage": ""
-      },
-      {
-        "slug": "projeto-06",
-        "title": "insira aqui o seu projeto",
-        "category": "[categoria]",
-        "client": "[cliente]",
-        "year": "[ano]",
-        "status": "placeholder",
-        "coverImage": "assets/images/placeholder-2.png",
-        "gallery": [],
-        "featured": false,
-        "order": 6,
-        "published": true,
-        "workPreviewImage": ""
-      },
-      {
-        "slug": "projeto-07",
-        "title": "insira aqui o seu projeto",
-        "category": "[categoria]",
-        "client": "[cliente]",
-        "year": "[ano]",
-        "status": "placeholder",
-        "coverImage": "assets/images/placeholder-3.png",
-        "gallery": [],
-        "featured": false,
-        "order": 7,
-        "published": true,
-        "workPreviewImage": ""
-      },
-      {
-        "slug": "projeto-08",
-        "title": "insira aqui o seu projeto",
-        "category": "[categoria]",
-        "client": "[cliente]",
-        "year": "[ano]",
-        "status": "placeholder",
-        "coverImage": "assets/images/placeholder-4.png",
-        "gallery": [],
-        "featured": false,
-        "order": 8,
-        "published": true,
-        "workPreviewImage": ""
-      },
-      {
-        "slug": "projeto-09",
-        "title": "insira aqui o seu projeto",
-        "category": "[categoria]",
-        "client": "[cliente]",
-        "year": "[ano]",
-        "status": "placeholder",
-        "coverImage": "assets/images/placeholder-1.png",
-        "gallery": [],
-        "featured": false,
-        "order": 9,
-        "published": true,
-        "workPreviewImage": ""
+        "published": true
       }
     ],
-    "archive": [
-      {
-        "title": "PROJETO ANTIGO A",
-        "detail": "identidade visual [2022]",
-        "url": "#"
-      },
-      {
-        "title": "PROJETO ANTIGO B",
-        "detail": "identidade visual [2022]",
-        "url": "#"
-      },
-      {
-        "title": "PROJETO ANTIGO C",
-        "detail": "design editorial [2021]",
-        "url": "#"
-      },
-      {
-        "title": "PROJETO ANTIGO D",
-        "detail": "identidade visual [2020]",
-        "url": "#"
-      }
-    ],
-    "miscUrl": "#"
+    "archive": []
   }
 }
