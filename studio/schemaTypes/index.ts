@@ -1,0 +1,37 @@
+import {project} from './project'
+import {
+  accessibleImage,
+  optionalAccessibleImage,
+  optionalColumnVimeo,
+  columnContent,
+  columnVimeo,
+  credit,
+  fullWidthMedia,
+  localizedBlockContent,
+  localizedString,
+  projectSeo,
+  spacerBlock,
+  textBlock,
+  twoColumns,
+  vimeoBlock,
+  wideMedia,
+} from './objects'
+
+export const schemaTypes = [
+  project,
+  accessibleImage,
+  optionalAccessibleImage,
+  optionalColumnVimeo,
+  localizedString,
+  localizedBlockContent,
+  credit,
+  projectSeo,
+  fullWidthMedia,
+  wideMedia,
+  textBlock,
+  twoColumns,
+  columnContent,
+  columnVimeo,
+  vimeoBlock,
+  spacerBlock,
+]

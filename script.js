@@ -9,12 +9,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     const content = await loadSiteContent();
     renderHeader(content.site);
     renderFooter(content.site);
-    renderPage(content);
+    if (isSanityProjectPreview()) {
+      await renderSanityProjectPreview();
+    } else {
+      renderPage(content);
+    }
   } catch (error) {
     console.error("Não foi possível carregar o conteúdo do site.", error);
     renderLoadError();
   }
 });
+
+function isSanityProjectPreview() {
+  const params = new URLSearchParams(window.location.search);
+  return getCurrentPage() === "project" && params.get("sanity-preview") === "1";
+}
 
 async function loadSiteContent() {
   const response = await fetch(CONTENT_URL, { cache: "no-store" });
@@ -283,6 +292,287 @@ function renderProject(work) {
     createProjectNavigation(project, projects)
   );
   root.replaceChildren(caseStudy);
+}
+
+let sanityPreviewEventSource;
+let sanityPreviewRefreshTimer;
+
+async function renderSanityProjectPreview() {
+  const root = document.getElementById("project-root");
+  if (!root) return;
+
+  document.body.classList.add("is-sanity-preview");
+  const runtime = await import("./assets/js/sanity-preview.js");
+
+  const refresh = async () => {
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get("slug") || "cms-schema-validation-test";
+    const locale = params.get("lang") === "en" ? "en" : "pt";
+    const response = await fetch(`/api/preview/project?slug=${encodeURIComponent(slug)}`, {
+      cache: "no-store",
+      credentials: "same-origin",
+    });
+    const payload = await response.json();
+    if (!response.ok) throw new Error(payload.error || `Preview request failed: ${response.status}`);
+    renderSanityProject(payload.project, locale, runtime);
+  };
+
+  await refresh();
+  runtime.startVisualEditing();
+
+  sanityPreviewEventSource?.close();
+  sanityPreviewEventSource = new EventSource("/api/preview/events", { withCredentials: true });
+  sanityPreviewEventSource.addEventListener("project", () => {
+    window.clearTimeout(sanityPreviewRefreshTimer);
+    sanityPreviewRefreshTimer = window.setTimeout(() => {
+      refresh().catch((error) => console.error("Sanity preview refresh failed.", error));
+    }, 180);
+  });
+  sanityPreviewEventSource.addEventListener("error", (error) => {
+    console.error("Sanity preview live connection failed.", error);
+  });
+}
+
+function renderSanityProject(project, locale, runtime) {
+  const root = document.getElementById("project-root");
+  if (!root) return;
+
+  document.documentElement.lang = locale === "en" ? "en" : "pt-BR";
+  document.title = "Project preview | Bruno Oliveira";
+
+  const caseStudy = createElement("article", "project-case-study project-case-study--cms");
+  caseStudy.dataset.sanity = runtime.sanityDataAttribute({
+    id: project._id,
+    type: project._type,
+    path: "contentBlocks",
+  });
+
+  caseStudy.append(
+    createSanityLanguageSwitch(locale),
+    createSanityMedia(project.cover, "cover", "project-media-slot project-media-slot--hero", project, runtime, { width: 1880, height: 859 }),
+    createSanityProjectSummary(project, locale, runtime),
+    createSanityBlocks(project, locale, runtime),
+    createSanityCredits(project, runtime),
+    createProjectNavigation(project, [project])
+  );
+  root.replaceChildren(caseStudy);
+}
+
+function createSanityLanguageSwitch(locale) {
+  const nav = createElement("nav", "sanity-preview-language");
+  nav.setAttribute("aria-label", "Preview language");
+  ["pt", "en"].forEach((language) => {
+    const link = createElement("a", "sanity-preview-language__link", language.toUpperCase());
+    const url = new URL(window.location.href);
+    url.searchParams.set("lang", language);
+    link.href = `${url.pathname}${url.search}`;
+    if (locale === language) link.setAttribute("aria-current", "page");
+    nav.appendChild(link);
+  });
+  return nav;
+}
+
+function createSanityProjectSummary(project, locale, runtime) {
+  const summary = createElement("section", "project-summary");
+  const title = createElement("h1", "project-summary__title", project.title || "Untitled project");
+  const meta = createElement("div", "project-summary__meta");
+  const type = createElement("p", "", project.projectType?.[locale] || project.projectType?.pt || project.projectType?.en || "");
+  const year = createElement("p", "", project.year || "");
+  const credits = createElement("button", "project-summary__credits", locale === "en" ? "full credits↓" : "créditos completos↓");
+
+  title.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: "title"});
+  type.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: `projectType.${locale}`});
+  year.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: "year"});
+  credits.type = "button";
+  credits.addEventListener("click", () => {
+    document.getElementById("project-cms-credits")?.scrollIntoView({behavior: "smooth", block: "start"});
+  });
+  meta.append(type, year, credits);
+  summary.append(title, meta);
+  return summary;
+}
+
+function createSanityBlocks(project, locale, runtime) {
+  const blocks = createElement("div", "project-content-blocks");
+  blocks.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: "contentBlocks"});
+  blocks.dataset.sanityDragFlow = "vertical";
+
+  (project.contentBlocks || []).forEach((block) => {
+    const blockPath = `contentBlocks[_key==\"${block._key}\"]`;
+    const element = createSanityBlock(block, blockPath, project, locale, runtime);
+    if (!element) return;
+    element.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: blockPath});
+    blocks.appendChild(element);
+  });
+  return blocks;
+}
+
+function createSanityBlock(block, blockPath, project, locale, runtime) {
+  if (block._type === "fullWidthMedia") {
+    return createSanityMedia(block.media, `${blockPath}.media`, "project-content-block project-content-block--full", project, runtime, {width: 1920, height: 1080});
+  }
+  if (block._type === "wideMedia") {
+    return createSanityMedia(block.media, `${blockPath}.media`, "project-content-block project-content-block--wide", project, runtime, {width: 1880, height: 1056});
+  }
+  if (block._type === "textBlock") {
+    const section = createElement("section", `project-content-block project-text-block project-text-block--${block.placement || "wide"}`);
+    section.appendChild(createSanityLocalizedText(block.content, locale, `${blockPath}.content`, project, runtime));
+    return section;
+  }
+  if (block._type === "twoColumns") {
+    const row = createElement("section", "project-content-block project-two-columns");
+    row.append(
+      createSanityColumn(block.left, `${blockPath}.left`, project, locale, runtime),
+      createSanityColumn(block.right, `${blockPath}.right`, project, locale, runtime)
+    );
+    return row;
+  }
+  if (block._type === "vimeoBlock") {
+    return createSanityVimeo(block, blockPath, project, locale, runtime, block.layout === "fullWidth" ? "full" : "wide");
+  }
+  if (block._type === "spacerBlock") {
+    const spacer = createElement("div", `project-content-block project-spacer project-spacer--${block.size || "medium"}`);
+    spacer.setAttribute("aria-hidden", "true");
+    return spacer;
+  }
+  return null;
+}
+
+function createSanityMedia(media, path, className, project, runtime, dimensions) {
+  const figure = createElement("figure", className);
+  const imageData = media?.image;
+  const imageUrl = runtime.sanityImageUrl(imageData, dimensions);
+  figure.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: `${path}.image`});
+
+  if (!imageUrl) {
+    figure.classList.add("is-empty");
+    figure.setAttribute("aria-label", "Image not set");
+    return figure;
+  }
+
+  const image = document.createElement("img");
+  image.src = imageUrl;
+  image.alt = media.decorative ? "" : media.alt || "";
+  image.loading = path === "cover" ? "eager" : "lazy";
+  image.decoding = "async";
+  image.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: `${path}.image`});
+  figure.appendChild(image);
+
+  const caption = media.caption?.pt || media.caption?.en;
+  if (caption) figure.appendChild(createElement("figcaption", "project-media-caption", caption));
+  return figure;
+}
+
+function createSanityLocalizedText(content, locale, path, project, runtime) {
+  const article = createElement("article", "project-localized-text");
+  const localized = content?.[locale] || content?.pt || content?.en || {};
+  article.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: `${path}.${locale}`});
+
+  if (localized.title) article.appendChild(createElement("h2", "project-localized-text__title", localized.title));
+  if (localized.subtitle) article.appendChild(createElement("p", "project-localized-text__subtitle", localized.subtitle));
+  if (localized.body?.length) {
+    const body = createElement("div", "project-localized-text__body");
+    renderPortableText(body, localized.body);
+    article.appendChild(body);
+  }
+  return article;
+}
+
+function renderPortableText(container, blocks) {
+  blocks.filter((block) => block?._type === "block").forEach((block) => {
+    const paragraph = document.createElement("p");
+    const definitions = new Map((block.markDefs || []).map((definition) => [definition._key, definition]));
+    (block.children || []).forEach((child) => {
+      let node = document.createTextNode(child.text || "");
+      (child.marks || []).slice().reverse().forEach((mark) => {
+        let wrapper;
+        if (mark === "strong") wrapper = document.createElement("strong");
+        if (mark === "em") wrapper = document.createElement("em");
+        const definition = definitions.get(mark);
+        if (definition?._type === "link") {
+          wrapper = document.createElement("a");
+          wrapper.href = definition.href;
+          wrapper.rel = "noreferrer";
+        }
+        if (wrapper) {
+          wrapper.appendChild(node);
+          node = wrapper;
+        }
+      });
+      paragraph.appendChild(node);
+    });
+    container.appendChild(paragraph);
+  });
+}
+
+function createSanityColumn(column = {}, path, project, locale, runtime) {
+  const item = createElement("div", `project-column project-column--${column.kind || "empty"}`);
+  item.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path});
+  if (column.kind === "image") {
+    item.appendChild(createSanityMedia(column.image, `${path}.image`, "project-column__media", project, runtime, {width: 928, height: 859}));
+  } else if (column.kind === "text") {
+    item.appendChild(createSanityLocalizedText(column.text, locale, `${path}.text`, project, runtime));
+  } else if (column.kind === "vimeo") {
+    item.appendChild(createSanityVimeo(column.vimeo, `${path}.vimeo`, project, locale, runtime, "column"));
+  } else {
+    item.setAttribute("aria-hidden", "true");
+  }
+  return item;
+}
+
+function createSanityVimeo(video = {}, path, project, locale, runtime, layout) {
+  const figure = createElement("figure", `project-content-block project-vimeo project-vimeo--${layout}`);
+  figure.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path});
+  const id = getVimeoId(video.vimeoUrl);
+  if (!id) {
+    figure.classList.add("is-empty");
+    figure.setAttribute("aria-label", "Vimeo URL not set");
+    return figure;
+  }
+
+  const frame = createElement("div", "project-vimeo__frame");
+  const iframe = document.createElement("iframe");
+  const query = new URLSearchParams({
+    autoplay: video.autoplay ? "1" : "0",
+    loop: video.loop ? "1" : "0",
+    muted: video.muted ? "1" : "0",
+    title: "0",
+    byline: "0",
+    portrait: "0",
+  });
+  iframe.src = `https://player.vimeo.com/video/${id}?${query.toString()}`;
+  iframe.title = video.caption?.[locale] || "Vimeo video";
+  iframe.loading = "lazy";
+  iframe.allow = "autoplay; fullscreen; picture-in-picture";
+  iframe.allowFullscreen = true;
+  frame.appendChild(iframe);
+  figure.appendChild(frame);
+
+  const caption = video.caption?.[locale] || video.caption?.pt || video.caption?.en;
+  if (caption) figure.appendChild(createElement("figcaption", "project-media-caption", caption));
+  return figure;
+}
+
+function getVimeoId(url = "") {
+  const match = String(url).match(/vimeo\.com\/(?:video\/)?(\d+)/);
+  return match?.[1] || "";
+}
+
+function createSanityCredits(project, runtime) {
+  const section = createElement("section", "project-cms-credits");
+  const content = createElement("div", "project-cms-credits__content");
+  section.id = "project-cms-credits";
+  section.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: "credits"});
+  section.appendChild(createBilingualHeading("Credits", "créditos"));
+  (project.credits || []).forEach((credit) => {
+    const item = createElement("p", "project-cms-credit");
+    item.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: `credits[_key==\"${credit._key}\"]`});
+    if (credit.label) item.appendChild(createElement("strong", "", `${credit.label}: `));
+    item.appendChild(document.createTextNode(credit.value || ""));
+    content.appendChild(item);
+  });
+  section.appendChild(content);
+  return section;
 }
 
 function getProjectMedia(project) {

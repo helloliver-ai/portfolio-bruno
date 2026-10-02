@@ -821,6 +821,236 @@ img {
   min-height: clamp(120px, 7.813vw, 150px);
 }
 
+.project-case-study--cms {
+  position: relative;
+}
+
+.sanity-preview-language {
+  position: fixed;
+  z-index: 45;
+  top: calc(var(--header-height) + 12px);
+  right: 16px;
+  display: flex;
+  overflow: hidden;
+  border: var(--line);
+  border-radius: 999px;
+  background: var(--white);
+}
+
+.sanity-preview-language__link {
+  min-width: 42px;
+  padding: 8px 10px;
+  color: var(--accent);
+  font-size: 12px;
+  line-height: 1;
+  text-align: center;
+}
+
+.sanity-preview-language__link + .sanity-preview-language__link {
+  border-left: var(--line);
+}
+
+.sanity-preview-language__link[aria-current="page"] {
+  background: var(--accent);
+  color: var(--white);
+}
+
+.project-content-blocks {
+  display: flow-root;
+}
+
+.project-content-block--full,
+.project-content-block--wide,
+.project-column__media {
+  position: relative;
+  overflow: hidden;
+  background: var(--media-placeholder);
+}
+
+.project-content-block--full {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+}
+
+.project-content-block--wide {
+  width: calc(100% - clamp(28px, 2.083vw, 40px));
+  aspect-ratio: 1880 / 1056;
+  margin-inline: auto;
+}
+
+.project-content-block--full img,
+.project-content-block--wide img,
+.project-column__media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.project-media-caption {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  max-width: min(70%, 640px);
+  padding: 5px 8px;
+  background: rgb(255 255 255 / 88%);
+  font-size: clamp(10px, 0.729vw, 14px);
+  line-height: 1.2;
+}
+
+.project-text-block {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: clamp(64px, 7.292vw, 140px) 6.82%;
+}
+
+.project-text-block--wide .project-localized-text {
+  grid-column: 1 / -1;
+  max-width: 52ch;
+}
+
+.project-text-block--halfLeft .project-localized-text {
+  grid-column: 1;
+}
+
+.project-text-block--halfRight .project-localized-text {
+  grid-column: 2;
+}
+
+.project-localized-text {
+  font-size: clamp(18px, 1.667vw, 32px);
+  line-height: 1.08;
+}
+
+.project-localized-text__title {
+  font-size: clamp(28px, 2.5vw, 48px);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+
+.project-localized-text__subtitle {
+  margin-top: 0.5em;
+  color: var(--accent);
+  font-style: italic;
+}
+
+.project-localized-text__body {
+  margin-top: clamp(24px, 2.083vw, 40px);
+}
+
+.project-localized-text__body p + p {
+  margin-top: 1em;
+}
+
+.project-localized-text__body a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.project-two-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(12px, 1.302vw, 25px);
+  padding-inline: clamp(20px, 1.042vw, 20px);
+}
+
+.project-column {
+  min-width: 0;
+}
+
+.project-column--text {
+  display: flex;
+  align-items: flex-start;
+  padding: clamp(36px, 4.167vw, 80px) 8%;
+  border: var(--line);
+}
+
+.project-column--empty {
+  min-height: clamp(120px, 16vw, 307px);
+}
+
+.project-column__media {
+  aspect-ratio: 928 / 859;
+}
+
+.project-column .project-vimeo {
+  width: 100%;
+  margin: 0;
+}
+
+.project-vimeo {
+  position: relative;
+}
+
+.project-vimeo--full {
+  width: 100%;
+}
+
+.project-vimeo--wide {
+  width: calc(100% - clamp(28px, 2.083vw, 40px));
+  margin-inline: auto;
+}
+
+.project-vimeo__frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--black);
+}
+
+.project-vimeo__frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.project-spacer {
+  width: 100%;
+}
+
+.project-spacer--small {
+  height: clamp(24px, 2.5vw, 48px);
+}
+
+.project-spacer--medium {
+  height: clamp(48px, 5vw, 96px);
+}
+
+.project-spacer--large {
+  height: clamp(72px, 7.5vw, 144px);
+}
+
+.project-spacer--extraLarge {
+  height: clamp(112px, 12.5vw, 240px);
+}
+
+.project-cms-credits {
+  display: grid;
+  grid-template-columns: 36% 64%;
+  min-height: clamp(360px, 32vw, 614px);
+  margin-top: clamp(48px, 5vw, 96px);
+  padding: clamp(64px, 5vw, 96px) 6.82%;
+  border-top: var(--line);
+  border-bottom: var(--line);
+}
+
+.project-cms-credits__content {
+  font-size: clamp(18px, 1.667vw, 32px);
+  line-height: 1.08;
+}
+
+.project-cms-credit + .project-cms-credit {
+  margin-top: 1em;
+}
+
+.project-cms-credit strong {
+  font-weight: 600;
+}
+
 /* Responsive desktop adaptation */
 
 @media (max-width: 1100px) {
@@ -1054,6 +1284,25 @@ img {
   .project-copy {
     min-height: 700px;
   }
+
+  .project-text-block {
+    grid-template-columns: 1fr;
+  }
+
+  .project-text-block--halfLeft .project-localized-text,
+  .project-text-block--halfRight .project-localized-text {
+    grid-column: 1;
+    max-width: 32ch;
+  }
+
+  .project-text-block--halfRight .project-localized-text {
+    justify-self: end;
+  }
+
+  .project-cms-credits {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
 }
 
 @media (max-width: 640px) {
@@ -1185,6 +1434,29 @@ img {
 
   .project-navigation {
     min-height: 112px;
+  }
+
+  .project-content-block--wide,
+  .project-vimeo--wide {
+    width: calc(100% - 24px);
+  }
+
+  .project-text-block {
+    padding: 3.5rem 1rem;
+  }
+
+  .project-two-columns {
+    grid-template-columns: 1fr;
+    padding-inline: 12px;
+  }
+
+  .project-column--text {
+    min-height: 320px;
+    padding: 3rem 1rem;
+  }
+
+  .project-cms-credits {
+    padding: 3rem 1rem;
   }
 
   .page-nav {
