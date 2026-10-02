@@ -1,7 +1,8 @@
-import { i, j as s, k as r } from "./client-DwnNz60k.js";
+import "./sanity.shared-BjhqLsb8.js";
+import { s as i, b as r, e } from "./client-DjQWvx_P.js";
 export {
   i as sanityDataAttribute,
-  s as sanityImageUrl,
-  r as startVisualEditing
+  r as sanityImageUrl,
+  e as startVisualEditing
 };
 //# sourceMappingURL=sanity-preview.js.map

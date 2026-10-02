@@ -1,13 +1,14 @@
-import imageUrlBuilder from '@sanity/image-url'
+import {createImageUrlBuilder} from '@sanity/image-url'
 import {createDataAttribute, enableVisualEditing} from '@sanity/visual-editing'
 
+import {sanityConfig} from './sanity.shared.js'
+
 const config = {
-  projectId: 'uj669d76',
-  dataset: 'production',
+  ...sanityConfig,
   baseUrl: 'http://127.0.0.1:3333',
 }
 
-const imageBuilder = imageUrlBuilder({
+const imageBuilder = createImageUrlBuilder({
   projectId: config.projectId,
   dataset: config.dataset,
 })

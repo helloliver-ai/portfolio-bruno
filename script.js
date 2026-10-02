@@ -9,7 +9,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     const content = await loadSiteContent();
     renderHeader(content.site);
     renderFooter(content.site);
-    if (isSanityProjectPreview()) {
+    if (isCmsMode()) {
+      await renderCmsPage(content);
+    } else if (isSanityProjectPreview()) {
       await renderSanityProjectPreview();
     } else {
       renderPage(content);
@@ -19,6 +21,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderLoadError();
   }
 });
+
+function isCmsMode() {
+  const page = getCurrentPage();
+  return (page === "work" || page === "project") && new URLSearchParams(window.location.search).get("cms") === "1";
+}
 
 function isSanityProjectPreview() {
   const params = new URLSearchParams(window.location.search);
@@ -245,7 +252,18 @@ function renderWork(work) {
   feature.appendChild(featureImage);
   list.id = "project-list";
   list.setAttribute("aria-label", "Projetos");
-  projects.forEach((project) => list.appendChild(createWorkProjectRow(project)));
+  projects.forEach((project) => {
+    const row = createWorkProjectRow(project);
+    if (project.thumbnailSrc) {
+      const showThumbnail = () => {
+        featureImage.src = project.thumbnailSrc;
+        featureImage.alt = project.thumbnailAlt || "";
+      };
+      row.addEventListener("mouseenter", showThumbnail);
+      row.addEventListener("focus", showThumbnail);
+    }
+    list.appendChild(row);
+  });
   for (let index = projects.length; index < WORK_VISIBLE_ROWS; index += 1) {
     const emptyRow = createElement("div", "work-project-row work-project-row--empty");
     emptyRow.setAttribute("aria-hidden", "true");
@@ -259,7 +277,10 @@ function createWorkProjectRow(project) {
   const row = createElement(project.slug ? "a" : "article", "work-project-row");
   const meta = createElement("div", "work-project-row__meta");
   const title = createElement("h2", "work-project-row__title", project.title || "");
-  if (project.slug) row.href = `project.html?slug=${encodeURIComponent(project.slug)}`;
+  if (project.slug) {
+    const cmsQuery = project.cms ? "&cms=1" : "";
+    row.href = `project.html?slug=${encodeURIComponent(project.slug)}${cmsQuery}`;
+  }
   meta.append(
     createElement("span", "", project.client || ""),
     createElement("span", "", project.projectType || project.category || ""),
@@ -292,6 +313,51 @@ function renderProject(work) {
     createProjectNavigation(project, projects)
   );
   root.replaceChildren(caseStudy);
+}
+
+async function renderCmsPage(content) {
+  document.body.classList.add("is-cms-mode");
+  const runtime = await import("./assets/js/sanity-cms.js");
+  const page = getCurrentPage();
+
+  if (page === "work") {
+    const sanityProjects = await runtime.fetchPublishedProjects();
+    const projects = (sanityProjects || []).map((project) => {
+      const thumbnail = project.thumbnail?.image?.asset ? project.thumbnail : project.cover;
+      return {
+        title: project.title,
+        client: project.client,
+        projectType: project.projectType?.pt || project.projectType?.en || "",
+        year: project.year,
+        slug: project.slug,
+        order: project.workOrder,
+        published: true,
+        cms: true,
+        thumbnailSrc: runtime.sanityImageUrl(thumbnail?.image, {width: 900, height: 1100}),
+        thumbnailAlt: thumbnail?.decorative ? "" : thumbnail?.alt || "",
+      };
+    });
+    const firstProject = projects[0];
+    renderWork({
+      ...content.work,
+      projects,
+      featureImage: firstProject?.thumbnailSrc || content.work.featureImage,
+      featureImageAlt: firstProject?.thumbnailSrc ? firstProject.thumbnailAlt : content.work.featureImageAlt,
+    });
+    return;
+  }
+
+  if (page === "project") {
+    const params = new URLSearchParams(window.location.search);
+    const slug = params.get("slug") || "cms-schema-validation-test";
+    const locale = params.get("lang") === "en" ? "en" : "pt";
+    const [project, projects] = await Promise.all([
+      runtime.fetchPublishedProject(slug),
+      runtime.fetchPublishedProjects(),
+    ]);
+    if (!project) throw new Error(`Projeto Sanity não encontrado para o slug “${slug}”.`);
+    renderSanityProject(project, locale, runtime, {cmsMode: true, projects});
+  }
 }
 
 let sanityPreviewEventSource;
@@ -333,7 +399,7 @@ async function renderSanityProjectPreview() {
   });
 }
 
-function renderSanityProject(project, locale, runtime) {
+function renderSanityProject(project, locale, runtime, options = {}) {
   const root = document.getElementById("project-root");
   if (!root) return;
 
@@ -353,7 +419,7 @@ function renderSanityProject(project, locale, runtime) {
     createSanityProjectSummary(project, locale, runtime),
     createSanityBlocks(project, locale, runtime),
     createSanityCredits(project, runtime),
-    createProjectNavigation(project, [project])
+    createProjectNavigation(project, options.projects?.length ? options.projects : [project], {cms: options.cmsMode})
   );
   root.replaceChildren(caseStudy);
 }
@@ -646,16 +712,18 @@ function createBilingualHeading(primary, secondary) {
   return heading;
 }
 
-function createProjectNavigation(project, projects) {
+function createProjectNavigation(project, projects, options = {}) {
   const nav = createElement("nav", "project-navigation");
   const index = projects.findIndex((item) => item.slug === project.slug);
   const previous = projects.length > 1 ? projects[(index - 1 + projects.length) % projects.length] : null;
   const next = projects.length > 1 ? projects[(index + 1) % projects.length] : null;
+  const cmsQuery = options.cms ? "&cms=1" : "";
+  const workUrl = options.cms ? "work.html?cms=1" : "work.html";
   nav.setAttribute("aria-label", "Navegação entre projetos");
   nav.append(
-    createPageNavLink(previous ? `project.html?slug=${encodeURIComponent(previous.slug)}` : "work.html", "left", previous ? `Projeto anterior: ${previous.title}` : "Voltar para Work"),
-    createPageNavLink("work.html", "up", "Voltar para Work"),
-    createPageNavLink(next ? `project.html?slug=${encodeURIComponent(next.slug)}` : "work.html", "right", next ? `Próximo projeto: ${next.title}` : "Voltar para Work")
+    createPageNavLink(previous ? `project.html?slug=${encodeURIComponent(previous.slug)}${cmsQuery}` : workUrl, "left", previous ? `Projeto anterior: ${previous.title}` : "Voltar para Work"),
+    createPageNavLink(workUrl, "up", "Voltar para Work"),
+    createPageNavLink(next ? `project.html?slug=${encodeURIComponent(next.slug)}${cmsQuery}` : workUrl, "right", next ? `Próximo projeto: ${next.title}` : "Voltar para Work")
   );
   return nav;
 }

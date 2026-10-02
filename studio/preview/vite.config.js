@@ -6,11 +6,14 @@ export default defineConfig({
     'process.env.NODE_ENV': JSON.stringify('production'),
   },
   build: {
-    emptyOutDir: false,
+    emptyOutDir: true,
     lib: {
-      entry: resolve(import.meta.dirname, 'client.js'),
+      entry: {
+        'sanity-preview': resolve(import.meta.dirname, 'client.js'),
+        'sanity-cms': resolve(import.meta.dirname, 'cms-client.js'),
+      },
       formats: ['es'],
-      fileName: () => 'sanity-preview.js',
+      fileName: (_format, entryName) => `${entryName}.js`,
     },
     outDir: resolve(import.meta.dirname, '../../assets/js'),
     sourcemap: true,

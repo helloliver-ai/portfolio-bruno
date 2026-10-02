@@ -29,6 +29,27 @@ descriptionEn
 
 `project.html?slug=<slug>` encontra o registro correspondente, monta a galeria, créditos e textos, e calcula anterior/próximo a partir da ordem dos dados. Slots sem mídia ou texto permanecem vazios sem quebrar o grid.
 
-## Integração futura
+## Integração experimental com Sanity
 
-`script.js` e `portrait-points.js` leem `data/site-content.json`. Uma integração com CMS pode preservar o formato e trocar apenas a origem do carregamento, ou publicar o mesmo JSON durante o build. O markup das páginas permanece estrutural e não contém conteúdo de projeto hardcoded.
+Na branch local `cms-live-integration`, o modo normal continua lendo `data/site-content.json`. O parâmetro `cms=1` ativa leitura pública em runtime do dataset `production`:
+
+- `work.html?cms=1` lista Projects publicados por `workOrder`;
+- `project.html?slug=<slug>&cms=1` renderiza o Project e seus content blocks;
+- `project.html?slug=<slug>&sanity-preview=1` é reservado ao preview autenticado do Presentation.
+
+Para iniciar o ambiente local:
+
+```sh
+cd studio
+npm run build:preview
+npm run preview
+```
+
+O Portfolio fica em `http://127.0.0.1:8080`. Em outro terminal, inicie o Studio:
+
+```sh
+cd studio
+npm run dev -- --host 127.0.0.1
+```
+
+O Studio fica em `http://127.0.0.1:3333`. O servidor de preview lê `SANITY_API_READ_TOKEN` de `studio/.env.local`; esse arquivo é local e ignorado pelo Git. O bundle público usado por `cms=1` não contém token e consulta somente documentos publicados.

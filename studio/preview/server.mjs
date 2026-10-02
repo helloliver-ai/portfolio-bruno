@@ -7,6 +7,8 @@ import {createClient} from '@sanity/client'
 import {validatePreviewUrl} from '@sanity/preview-url-secret'
 import {perspectiveCookieName} from '@sanity/preview-url-secret/constants'
 
+import {projectQuery, sanityConfig} from './sanity.shared.js'
+
 const HOST = '127.0.0.1'
 const PORT = 8080
 const ORIGIN = `http://${HOST}:${PORT}`
@@ -20,9 +22,7 @@ if (!TOKEN) {
 }
 
 const client = createClient({
-  projectId: 'uj669d76',
-  dataset: 'production',
-  apiVersion: '2026-10-01',
+  ...sanityConfig,
   useCdn: false,
   token: TOKEN,
   perspective: 'drafts',
@@ -33,46 +33,6 @@ const client = createClient({
 })
 
 const sessions = new Map()
-const imageProjection = `{..., asset->{_id, url, metadata{dimensions}}}`
-const projectQuery = `*[_type == "project" && slug.current == $slug][0]{
-  _id,
-  _type,
-  _rev,
-  title,
-  client,
-  "slug": slug.current,
-  projectType,
-  year,
-  cover{..., image${imageProjection}},
-  credits[]{_key, label, value},
-  workOrder,
-  contentBlocks[]{
-    _key,
-    _type,
-    placement,
-    layout,
-    size,
-    vimeoUrl,
-    autoplay,
-    loop,
-    muted,
-    caption,
-    content,
-    media{..., image${imageProjection}},
-    left{
-      kind,
-      text,
-      image{..., image${imageProjection}},
-      vimeo
-    },
-    right{
-      kind,
-      text,
-      image{..., image${imageProjection}},
-      vimeo
-    }
-  }
-}`
 
 function parseCookies(request) {
   const header = request.headers.cookie || ''
