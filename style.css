@@ -460,6 +460,7 @@ a {
   max-height: 70vh;
   border-radius: 6px;
   object-fit: cover;
+  transform: translateX(-60px);
   opacity: 0;
   scale: 0.88;
   transition:
