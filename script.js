@@ -254,7 +254,9 @@ function renderWork(work) {
   archiveArrow.alt = "";
   archiveArrow.width = 92;
   archiveArrow.height = 106;
-  archiveLink.append(createElement("span", "work-archive-link__label", archiveLabel), archiveArrow);
+  const archiveContent = createElement("span", "work-archive-link__content");
+  archiveContent.append(createElement("span", "work-archive-link__label", archiveLabel), archiveArrow);
+  archiveLink.appendChild(archiveContent);
   title.append(createElement("span", "", work.titleEn || "Projects/"), document.createTextNode(" "), createElement("strong", "", work.titlePt || "Projetos"));
   intro.append(archiveLink, title);
 
