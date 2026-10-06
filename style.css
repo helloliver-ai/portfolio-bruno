@@ -293,6 +293,27 @@ img {
   font-size: clamp(25px, 1.875vw, 36px);
 }
 
+.home-hero__work::after,
+.work-archive-link::after {
+  position: absolute;
+  right: 0.48em;
+  bottom: -0.14em;
+  left: 0.48em;
+  height: max(1px, 0.04em);
+  background: currentColor;
+  content: "";
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 180ms ease;
+}
+
+.home-hero__work:hover::after,
+.home-hero__work:focus-visible::after,
+.work-archive-link:hover::after,
+.work-archive-link:focus-visible::after {
+  transform: scaleX(1);
+}
+
 .home-hero__work img {
   width: 0.72em;
   height: auto;
@@ -615,12 +636,20 @@ img {
 }
 
 .work-archive-link {
+  position: relative;
   align-self: center;
   justify-self: start;
   min-width: clamp(190px, 13.3vw, 255px);
   min-height: clamp(74px, 5.23vw, 100px);
   margin-left: 27.72%;
+  gap: 0.1em;
+  padding: 0.1em 0.48em;
   font-size: clamp(24px, 1.875vw, 36px);
+}
+
+.work-archive-link__arrow {
+  width: 0.72em;
+  height: auto;
 }
 
 .work-title {

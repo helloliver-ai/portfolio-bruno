@@ -243,9 +243,18 @@ function renderWork(work) {
   if (!root) return;
 
   const intro = createElement("section", "work-intro");
-  const archiveLink = createElement("a", "pill-button work-archive-link", work.archiveLabel || "ARCHIVES↓");
+  const archiveLink = createElement("button", "pill-button work-archive-link");
+  const archiveLabel = String(work.archiveLabel || "ARCHIVES").replace(/↓/g, "").trim();
+  const archiveArrow = document.createElement("img");
   const title = createElement("h1", "work-title");
-  archiveLink.href = "#project-list";
+  archiveLink.type = "button";
+  archiveLink.setAttribute("aria-label", `${archiveLabel} — menu de arquivos em breve`);
+  archiveArrow.className = "work-archive-link__arrow";
+  archiveArrow.src = DOWN_ARROW_ICON;
+  archiveArrow.alt = "";
+  archiveArrow.width = 92;
+  archiveArrow.height = 106;
+  archiveLink.append(createElement("span", "work-archive-link__label", archiveLabel), archiveArrow);
   title.append(createElement("span", "", work.titleEn || "Projects/"), document.createTextNode(" "), createElement("strong", "", work.titlePt || "Projetos"));
   intro.append(archiveLink, title);
 
