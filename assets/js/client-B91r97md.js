@@ -1,4 +1,4 @@
-import { s as O, g as je, c as Ae, a as Ie } from "./sanity.shared-BjhqLsb8.js";
+import { s as O, g as je, c as Ae, a as Ie } from "./sanity.shared-CtFB0wjo.js";
 import { g as Oe } from "./_commonjsHelpers-DaMA6jEr.js";
 var L = { exports: {} }, M = {}, Y = { exports: {} }, f = {};
 var se;
@@ -870,7 +870,7 @@ function lt(t) {
 }
 function ot(t = {}) {
   const n = new AbortController();
-  return import("./renderVisualEditing-DPDkmYUi.js").then((r) => r.r).then(({
+  return import("./renderVisualEditing-CUEGG9AL.js").then((r) => r.r).then(({
     renderVisualEditing: r
   }) => {
     const {
@@ -910,4 +910,4 @@ export {
   Ue as r,
   pt as s
 };
-//# sourceMappingURL=client-DjQWvx_P.js.map
+//# sourceMappingURL=client-B91r97md.js.map

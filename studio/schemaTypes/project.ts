@@ -16,6 +16,23 @@ export const project = defineType({
     defineField({name: 'year', title: 'Year', type: 'string', group: 'info', validation: (Rule) => Rule.max(20).custom((value) => !value || !/[\r\n]/.test(value) || 'Use a single-line year value.')}),
     defineField({name: 'slug', title: 'URL slug', type: 'slug', group: 'info', options: {source: 'title', maxLength: 96}, validation: (Rule) => Rule.required()}),
     defineField({name: 'cover', title: 'Project cover', type: 'accessibleImage', group: 'info', validation: (Rule) => Rule.required()}),
+    defineField({
+      name: 'heroLayout',
+      title: 'Project hero layout',
+      type: 'string',
+      group: 'composition',
+      initialValue: 'wide',
+      options: {
+        list: [
+          {title: 'Wide', value: 'wide'},
+          {title: 'Full width', value: 'fullWidth'},
+          {title: 'Two columns — image left / empty right', value: 'halfLeft'},
+          {title: 'Two columns — empty left / image right', value: 'halfRight'},
+        ],
+        layout: 'radio',
+      },
+      validation: (Rule) => Rule.required(),
+    }),
     defineField({name: 'thumbnail', title: 'Work thumbnail', type: 'optionalAccessibleImage', group: 'info', description: 'Optional. The future website falls back to Project cover.',}),
     defineField({name: 'credits', title: 'Credits', type: 'array', group: 'info', of: [defineArrayMember({type: 'credit'})]}),
     defineField({name: 'workOrder', title: 'Work order', type: 'number', group: 'info', description: 'Use 10, 20, 30… to leave room for future insertions.', validation: (Rule) => Rule.required().integer().positive()}),
@@ -25,8 +42,7 @@ export const project = defineType({
       type: 'array',
       group: 'composition',
       of: [
-        defineArrayMember({type: 'fullWidthMedia'}),
-        defineArrayMember({type: 'wideMedia'}),
+        defineArrayMember({type: 'mediaBlock'}),
         defineArrayMember({type: 'textBlock'}),
         defineArrayMember({type: 'twoColumns'}),
         defineArrayMember({type: 'vimeoBlock'}),

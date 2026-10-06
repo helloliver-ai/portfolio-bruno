@@ -28,6 +28,7 @@ export const projectQuery = `*[_type == "project" && slug.current == $slug][0]{
   "slug": slug.current,
   projectType,
   year,
+  heroLayout,
   cover{..., image${imageProjection}},
   credits[]{_key, label, value},
   workOrder,
@@ -41,7 +42,6 @@ export const projectQuery = `*[_type == "project" && slug.current == $slug][0]{
     autoplay,
     loop,
     muted,
-    caption,
     content,
     media{..., image${imageProjection}},
     left{

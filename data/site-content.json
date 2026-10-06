@@ -8,6 +8,7 @@
       { "label": "about+contact", "url": "about.html", "page": "about" }
     ],
     "footer": {
+      "label": "contato@olabruno.com",
       "email": "contato@olabruno.com",
       "emailSubject": "Olá!"
     }

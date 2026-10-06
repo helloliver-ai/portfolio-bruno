@@ -9,10 +9,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     const content = await loadSiteContent();
     renderHeader(content.site);
     renderFooter(content.site);
-    if (isCmsMode()) {
-      await renderCmsPage(content);
-    } else if (isSanityProjectPreview()) {
+    if (isSanityProjectPreview()) {
       await renderSanityProjectPreview();
+    } else if (isSanityContentPage()) {
+      try {
+        await renderCmsPage(content);
+      } catch (error) {
+        console.warn("Sanity indisponível; usando o conteúdo local de fallback.", error);
+        renderPage(content);
+      }
     } else {
       renderPage(content);
     }
@@ -22,9 +27,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-function isCmsMode() {
+function isSanityContentPage() {
   const page = getCurrentPage();
-  return (page === "work" || page === "project") && new URLSearchParams(window.location.search).get("cms") === "1";
+  return page === "work" || page === "project";
 }
 
 function isSanityProjectPreview() {
@@ -75,8 +80,11 @@ function renderFooter(site) {
   if (!footer) return;
 
   const email = site.footer?.email || "contato@olabruno.com";
-  const link = createElement("a", "site-footer__email", email);
+  const link = createElement("a", "site-footer__email");
+  const label = createElement("span", "site-footer__label", site.footer?.label || "contato@olabruno.com");
   link.href = createMailto(email, site.footer?.emailSubject);
+  link.setAttribute("aria-label", `${label.textContent}: ${email}`);
+  link.appendChild(label);
   footer.replaceChildren(link);
 }
 
@@ -242,26 +250,19 @@ function renderWork(work) {
   intro.append(archiveLink, title);
 
   const board = createElement("section", "work-board");
-  const feature = createElement("figure", "work-feature");
-  const featureImage = document.createElement("img");
+  const hoverCover = createElement("figure", "work-hover-cover");
+  const hoverCoverImage = document.createElement("img");
   const list = createElement("div", "work-project-list");
   const projects = getPublishedProjects(work.projects || []);
 
-  featureImage.src = work.featureImage || "";
-  featureImage.alt = work.featureImageAlt || "";
-  feature.appendChild(featureImage);
+  hoverCover.setAttribute("aria-hidden", "true");
+  hoverCoverImage.alt = "";
+  hoverCover.appendChild(hoverCoverImage);
   list.id = "project-list";
   list.setAttribute("aria-label", "Projetos");
   projects.forEach((project) => {
     const row = createWorkProjectRow(project);
-    if (project.thumbnailSrc) {
-      const showThumbnail = () => {
-        featureImage.src = project.thumbnailSrc;
-        featureImage.alt = project.thumbnailAlt || "";
-      };
-      row.addEventListener("mouseenter", showThumbnail);
-      row.addEventListener("focus", showThumbnail);
-    }
+    bindWorkHoverCover(row.querySelector(".work-project-row__title-link"), hoverCover, hoverCoverImage, project);
     list.appendChild(row);
   });
   for (let index = projects.length; index < WORK_VISIBLE_ROWS; index += 1) {
@@ -269,25 +270,98 @@ function renderWork(work) {
     emptyRow.setAttribute("aria-hidden", "true");
     list.appendChild(emptyRow);
   }
-  board.append(feature, list);
+  board.append(hoverCover, list);
   root.replaceChildren(intro, board);
 }
 
 function createWorkProjectRow(project) {
-  const row = createElement(project.slug ? "a" : "article", "work-project-row");
+  const row = createElement("article", "work-project-row");
   const meta = createElement("div", "work-project-row__meta");
-  const title = createElement("h2", "work-project-row__title", project.title || "");
+  const title = createElement("h2", "work-project-row__title");
+  const titleLink = createElement(project.slug ? "a" : "span", "work-project-row__title-link");
+  const viewport = createElement("span", "work-project-row__title-viewport");
+  const track = createElement("span", "work-project-row__title-track");
+  const titleText = project.title || "";
+  const titlePrimary = createElement("span", "work-project-row__title-copy", titleText);
+  const titleDuplicate = createElement("span", "work-project-row__title-copy", titleText);
+  const titleDuplicate2 = createElement("span", "work-project-row__title-copy", titleText);
+  const titleDuplicate3 = createElement("span", "work-project-row__title-copy", titleText);
+  [titleDuplicate, titleDuplicate2, titleDuplicate3].forEach((copy) => {
+    copy.setAttribute("aria-hidden", "true");
+  });
+
+  track.append(titlePrimary, titleDuplicate, titleDuplicate2, titleDuplicate3);
+  viewport.appendChild(track);
+  titleLink.appendChild(viewport);
   if (project.slug) {
-    const cmsQuery = project.cms ? "&cms=1" : "";
-    row.href = `project.html?slug=${encodeURIComponent(project.slug)}${cmsQuery}`;
+    titleLink.href = `project.html?slug=${encodeURIComponent(project.slug)}`;
+    titleLink.setAttribute("aria-label", titleText);
   }
+  const localizedType = normalizeLocalizedText(project.projectType || project.category);
   meta.append(
-    createElement("span", "", project.client || ""),
-    createElement("span", "", project.projectType || project.category || ""),
-    createElement("span", "", project.year || "")
+    createElement("span", "work-project-row__client", project.client || ""),
+    createWorkProjectType(localizedType),
+    createElement("span", "work-project-row__year", project.year || "")
   );
+  title.appendChild(titleLink);
   row.append(meta, title);
   return row;
+}
+
+function normalizeLocalizedText(value) {
+  if (value && typeof value === "object") return {pt: value.pt || "", en: value.en || ""};
+  const text = String(value || "");
+  const separator = text.indexOf(" / ");
+  if (separator >= 0) return {en: text.slice(0, separator), pt: text.slice(separator + 3)};
+  return {pt: text, en: ""};
+}
+
+function createWorkProjectType(localized) {
+  const wrapper = createElement("span", "work-project-row__type");
+  if (localized.pt) {
+    const pt = createElement("span", "work-project-row__type-pt", localized.pt);
+    pt.lang = "pt-BR";
+    wrapper.appendChild(pt);
+  }
+  if (localized.en) {
+    const en = createElement("span", "work-project-row__type-en", localized.en);
+    en.lang = "en";
+    wrapper.appendChild(en);
+  }
+  return wrapper;
+}
+
+function bindWorkHoverCover(titleLink, cover, image, project) {
+  if (!titleLink) return;
+  const source = project.thumbnailSrc || project.coverImage || "";
+  if (!source) return;
+  const supportsHover = window.matchMedia("(hover: hover) and (pointer: fine)");
+
+  const positionCover = (clientX) => {
+    const titleBounds = titleLink.getBoundingClientRect();
+    cover.style.left = `${clientX}px`;
+    const coverHeight = cover.getBoundingClientRect().height;
+    const desiredTop = titleBounds.top + (titleBounds.height / 2);
+    const safeTop = Math.max((coverHeight / 2) + 12, Math.min(window.innerHeight - (coverHeight / 2) - 12, desiredTop));
+    cover.style.top = `${safeTop}px`;
+  };
+
+  const show = (clientX) => {
+    if (!supportsHover.matches) return;
+    image.src = source;
+    cover.classList.add("is-visible");
+    positionCover(clientX);
+  };
+  const hide = () => cover.classList.remove("is-visible");
+
+  titleLink.addEventListener("pointerenter", (event) => show(event.clientX));
+  titleLink.addEventListener("pointermove", (event) => positionCover(event.clientX));
+  titleLink.addEventListener("pointerleave", hide);
+  titleLink.addEventListener("focus", () => {
+    const bounds = titleLink.getBoundingClientRect();
+    show(bounds.left + (bounds.width / 2));
+  });
+  titleLink.addEventListener("blur", hide);
 }
 
 function renderProject(work) {
@@ -305,7 +379,7 @@ function renderProject(work) {
   const caseStudy = createElement("article", "project-case-study");
   const media = getProjectMedia(project);
   caseStudy.append(
-    createMediaSlot(media[0], "project-media-slot project-media-slot--hero"),
+    createMediaSlot(media[0], "project-media-slot project-media-slot--hero project-content-block--wide"),
     createProjectSummary(project),
     createProjectMediaPair(media[1], media[2]),
     createMediaSlot(media[3], "project-media-slot project-media-slot--wide"),
@@ -327,22 +401,17 @@ async function renderCmsPage(content) {
       return {
         title: project.title,
         client: project.client,
-        projectType: project.projectType?.pt || project.projectType?.en || "",
+        projectType: project.projectType || {},
         year: project.year,
         slug: project.slug,
         order: project.workOrder,
         published: true,
-        cms: true,
         thumbnailSrc: runtime.sanityImageUrl(thumbnail?.image, {width: 900, height: 1100}),
-        thumbnailAlt: thumbnail?.decorative ? "" : thumbnail?.alt || "",
       };
     });
-    const firstProject = projects[0];
     renderWork({
       ...content.work,
       projects,
-      featureImage: firstProject?.thumbnailSrc || content.work.featureImage,
-      featureImageAlt: firstProject?.thumbnailSrc ? firstProject.thumbnailAlt : content.work.featureImageAlt,
     });
     return;
   }
@@ -350,13 +419,12 @@ async function renderCmsPage(content) {
   if (page === "project") {
     const params = new URLSearchParams(window.location.search);
     const slug = params.get("slug") || "cms-schema-validation-test";
-    const locale = params.get("lang") === "en" ? "en" : "pt";
     const [project, projects] = await Promise.all([
       runtime.fetchPublishedProject(slug),
       runtime.fetchPublishedProjects(),
     ]);
     if (!project) throw new Error(`Projeto Sanity não encontrado para o slug “${slug}”.`);
-    renderSanityProject(project, locale, runtime, {cmsMode: true, projects});
+    renderSanityProject(project, runtime, {projects});
   }
 }
 
@@ -373,14 +441,13 @@ async function renderSanityProjectPreview() {
   const refresh = async () => {
     const params = new URLSearchParams(window.location.search);
     const slug = params.get("slug") || "cms-schema-validation-test";
-    const locale = params.get("lang") === "en" ? "en" : "pt";
     const response = await fetch(`/api/preview/project?slug=${encodeURIComponent(slug)}`, {
       cache: "no-store",
       credentials: "same-origin",
     });
     const payload = await response.json();
     if (!response.ok) throw new Error(payload.error || `Preview request failed: ${response.status}`);
-    renderSanityProject(payload.project, locale, runtime);
+    renderSanityProject(payload.project, runtime);
   };
 
   await refresh();
@@ -399,11 +466,11 @@ async function renderSanityProjectPreview() {
   });
 }
 
-function renderSanityProject(project, locale, runtime, options = {}) {
+function renderSanityProject(project, runtime, options = {}) {
   const root = document.getElementById("project-root");
   if (!root) return;
 
-  document.documentElement.lang = locale === "en" ? "en" : "pt-BR";
+  document.documentElement.lang = "pt-BR";
   document.title = "Project preview | Bruno Oliveira";
 
   const caseStudy = createElement("article", "project-case-study project-case-study--cms");
@@ -414,58 +481,38 @@ function renderSanityProject(project, locale, runtime, options = {}) {
   });
 
   caseStudy.append(
-    createSanityLanguageSwitch(locale),
-    createSanityMedia(project.cover, "cover", "project-media-slot project-media-slot--hero", project, runtime, { width: 1880, height: 859 }),
-    createSanityProjectSummary(project, locale, runtime),
-    createSanityBlocks(project, locale, runtime),
-    createSanityCredits(project, runtime),
-    createProjectNavigation(project, options.projects?.length ? options.projects : [project], {cms: options.cmsMode})
+    createSanityMedia(project.cover, "cover", getProjectMediaClass(project.heroLayout, true), project, runtime, getProjectMediaDimensions(project.heroLayout, true)),
+    createSanityProjectSummary(project, runtime),
+    createSanityBlocks(project, runtime),
+    createProjectNavigation(project, options.projects?.length ? options.projects : [project])
   );
   root.replaceChildren(caseStudy);
 }
 
-function createSanityLanguageSwitch(locale) {
-  const nav = createElement("nav", "sanity-preview-language");
-  nav.setAttribute("aria-label", "Preview language");
-  ["pt", "en"].forEach((language) => {
-    const link = createElement("a", "sanity-preview-language__link", language.toUpperCase());
-    const url = new URL(window.location.href);
-    url.searchParams.set("lang", language);
-    link.href = `${url.pathname}${url.search}`;
-    if (locale === language) link.setAttribute("aria-current", "page");
-    nav.appendChild(link);
-  });
-  return nav;
-}
-
-function createSanityProjectSummary(project, locale, runtime) {
+function createSanityProjectSummary(project, runtime) {
   const summary = createElement("section", "project-summary");
   const title = createElement("h1", "project-summary__title", project.title || "Untitled project");
   const meta = createElement("div", "project-summary__meta");
-  const type = createElement("p", "", project.projectType?.[locale] || project.projectType?.pt || project.projectType?.en || "");
+  const type = createBilingualInlineText(project.projectType, "project-summary__type");
   const year = createElement("p", "", project.year || "");
-  const credits = createElement("button", "project-summary__credits", locale === "en" ? "full credits↓" : "créditos completos↓");
+  const credits = createCreditsAccordion(project.credits || [], runtime, project);
 
   title.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: "title"});
-  type.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: `projectType.${locale}`});
+  type.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: "projectType"});
   year.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: "year"});
-  credits.type = "button";
-  credits.addEventListener("click", () => {
-    document.getElementById("project-cms-credits")?.scrollIntoView({behavior: "smooth", block: "start"});
-  });
   meta.append(type, year, credits);
   summary.append(title, meta);
   return summary;
 }
 
-function createSanityBlocks(project, locale, runtime) {
+function createSanityBlocks(project, runtime) {
   const blocks = createElement("div", "project-content-blocks");
   blocks.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: "contentBlocks"});
   blocks.dataset.sanityDragFlow = "vertical";
 
   (project.contentBlocks || []).forEach((block) => {
     const blockPath = `contentBlocks[_key==\"${block._key}\"]`;
-    const element = createSanityBlock(block, blockPath, project, locale, runtime);
+    const element = createSanityBlock(block, blockPath, project, runtime);
     if (!element) return;
     element.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: blockPath});
     blocks.appendChild(element);
@@ -473,7 +520,17 @@ function createSanityBlocks(project, locale, runtime) {
   return blocks;
 }
 
-function createSanityBlock(block, blockPath, project, locale, runtime) {
+function createSanityBlock(block, blockPath, project, runtime) {
+  if (block._type === "mediaBlock") {
+    return createSanityMedia(
+      block.media,
+      `${blockPath}.media`,
+      getProjectMediaClass(block.layout),
+      project,
+      runtime,
+      getProjectMediaDimensions(block.layout)
+    );
+  }
   if (block._type === "fullWidthMedia") {
     return createSanityMedia(block.media, `${blockPath}.media`, "project-content-block project-content-block--full", project, runtime, {width: 1920, height: 1080});
   }
@@ -482,19 +539,19 @@ function createSanityBlock(block, blockPath, project, locale, runtime) {
   }
   if (block._type === "textBlock") {
     const section = createElement("section", `project-content-block project-text-block project-text-block--${block.placement || "wide"}`);
-    section.appendChild(createSanityLocalizedText(block.content, locale, `${blockPath}.content`, project, runtime));
+    section.appendChild(createSanityLocalizedText(block.content, `${blockPath}.content`, project, runtime));
     return section;
   }
   if (block._type === "twoColumns") {
     const row = createElement("section", "project-content-block project-two-columns");
     row.append(
-      createSanityColumn(block.left, `${blockPath}.left`, project, locale, runtime),
-      createSanityColumn(block.right, `${blockPath}.right`, project, locale, runtime)
+      createSanityColumn(block.left, `${blockPath}.left`, project, runtime),
+      createSanityColumn(block.right, `${blockPath}.right`, project, runtime)
     );
     return row;
   }
   if (block._type === "vimeoBlock") {
-    return createSanityVimeo(block, blockPath, project, locale, runtime, block.layout === "fullWidth" ? "full" : "wide");
+    return createSanityVimeo(block, blockPath, project, runtime, block.layout === "fullWidth" ? "full" : "wide");
   }
   if (block._type === "spacerBlock") {
     const spacer = createElement("div", `project-content-block project-spacer project-spacer--${block.size || "medium"}`);
@@ -502,6 +559,21 @@ function createSanityBlock(block, blockPath, project, locale, runtime) {
     return spacer;
   }
   return null;
+}
+
+function getProjectMediaClass(layout = "wide", hero = false) {
+  const prefix = hero ? "project-media-slot project-media-slot--hero" : "project-content-block";
+  if (layout === "fullWidth") return `${prefix} project-content-block--full`;
+  if (layout === "halfLeft") return `${prefix} project-content-block--half project-content-block--halfLeft`;
+  if (layout === "halfRight") return `${prefix} project-content-block--half project-content-block--halfRight`;
+  return `${prefix} project-content-block--wide`;
+}
+
+function getProjectMediaDimensions(layout = "wide", hero = false) {
+  if (layout === "fullWidth") return {width: 1920, height: 1080};
+  if (layout === "halfLeft" || layout === "halfRight") return {width: 928, height: 859};
+  if (hero) return {width: 1880, height: 859};
+  return {width: 1880, height: 1056};
 }
 
 function createSanityMedia(media, path, className, project, runtime, dimensions) {
@@ -518,30 +590,47 @@ function createSanityMedia(media, path, className, project, runtime, dimensions)
 
   const image = document.createElement("img");
   image.src = imageUrl;
-  image.alt = media.decorative ? "" : media.alt || "";
+  const preferredAlt = getPreferredImageAlt(media);
+  image.alt = preferredAlt.text;
+  if (preferredAlt.language) image.lang = preferredAlt.language;
   image.loading = path === "cover" ? "eager" : "lazy";
   image.decoding = "async";
   image.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: `${path}.image`});
   figure.appendChild(image);
-
-  const caption = media.caption?.pt || media.caption?.en;
-  if (caption) figure.appendChild(createElement("figcaption", "project-media-caption", caption));
   return figure;
 }
 
-function createSanityLocalizedText(content, locale, path, project, runtime) {
-  const article = createElement("article", "project-localized-text");
-  const localized = content?.[locale] || content?.pt || content?.en || {};
-  article.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: `${path}.${locale}`});
+function getPreferredImageAlt(media = {}) {
+  if (media.decorative) return {text: "", language: ""};
+  if (typeof media.alt === "string") return {text: media.alt, language: ""};
+  const languages = Array.isArray(navigator.languages) && navigator.languages.length
+    ? navigator.languages
+    : [navigator.language || "en"];
+  const prefersPortuguese = languages[0]?.toLowerCase().startsWith("pt");
+  if (prefersPortuguese) return {text: media.alt?.pt || media.alt?.en || "", language: "pt-BR"};
+  return {text: media.alt?.en || media.alt?.pt || "", language: "en"};
+}
 
-  if (localized.title) article.appendChild(createElement("h2", "project-localized-text__title", localized.title));
-  if (localized.subtitle) article.appendChild(createElement("p", "project-localized-text__subtitle", localized.subtitle));
-  if (localized.body?.length) {
-    const body = createElement("div", "project-localized-text__body");
-    renderPortableText(body, localized.body);
-    article.appendChild(body);
-  }
-  return article;
+function createSanityLocalizedText(content, path, project, runtime) {
+  const pair = createElement("div", "project-localized-pair");
+  ["pt", "en"].forEach((locale) => {
+    const localized = content?.[locale];
+    if (!localized) return;
+    const language = locale === "pt" ? "pt-BR" : "en";
+    const article = createElement("article", `project-localized-text project-localized-text--${locale}`);
+    article.lang = language;
+    article.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: `${path}.${locale}`});
+
+    if (localized.title) article.appendChild(createElement("h2", "project-localized-text__title", localized.title));
+    if (localized.subtitle) article.appendChild(createElement("p", "project-localized-text__subtitle", localized.subtitle));
+    if (localized.body?.length) {
+      const body = createElement("div", "project-localized-text__body");
+      renderPortableText(body, localized.body);
+      article.appendChild(body);
+    }
+    pair.appendChild(article);
+  });
+  return pair;
 }
 
 function renderPortableText(container, blocks) {
@@ -554,6 +643,10 @@ function renderPortableText(container, blocks) {
         let wrapper;
         if (mark === "strong") wrapper = document.createElement("strong");
         if (mark === "em") wrapper = document.createElement("em");
+        if (["colorBlack", "colorWhite", "colorOrange"].includes(mark)) {
+          wrapper = document.createElement("span");
+          wrapper.className = `portable-color portable-${mark}`;
+        }
         const definition = definitions.get(mark);
         if (definition?._type === "link") {
           wrapper = document.createElement("a");
@@ -571,22 +664,22 @@ function renderPortableText(container, blocks) {
   });
 }
 
-function createSanityColumn(column = {}, path, project, locale, runtime) {
+function createSanityColumn(column = {}, path, project, runtime) {
   const item = createElement("div", `project-column project-column--${column.kind || "empty"}`);
   item.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path});
   if (column.kind === "image") {
     item.appendChild(createSanityMedia(column.image, `${path}.image`, "project-column__media", project, runtime, {width: 928, height: 859}));
   } else if (column.kind === "text") {
-    item.appendChild(createSanityLocalizedText(column.text, locale, `${path}.text`, project, runtime));
+    item.appendChild(createSanityLocalizedText(column.text, `${path}.text`, project, runtime));
   } else if (column.kind === "vimeo") {
-    item.appendChild(createSanityVimeo(column.vimeo, `${path}.vimeo`, project, locale, runtime, "column"));
+    item.appendChild(createSanityVimeo(column.vimeo, `${path}.vimeo`, project, runtime, "column"));
   } else {
     item.setAttribute("aria-hidden", "true");
   }
   return item;
 }
 
-function createSanityVimeo(video = {}, path, project, locale, runtime, layout) {
+function createSanityVimeo(video = {}, path, project, runtime, layout) {
   const figure = createElement("figure", `project-content-block project-vimeo project-vimeo--${layout}`);
   figure.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path});
   const id = getVimeoId(video.vimeoUrl);
@@ -599,6 +692,11 @@ function createSanityVimeo(video = {}, path, project, locale, runtime, layout) {
   const frame = createElement("div", "project-vimeo__frame");
   const iframe = document.createElement("iframe");
   const query = new URLSearchParams({
+    autopause: "0",
+    controls: "0",
+    unmute_button: "0",
+    volume: "0",
+    keyboard: "0",
     autoplay: video.autoplay ? "1" : "0",
     loop: video.loop ? "1" : "0",
     muted: video.muted ? "1" : "0",
@@ -607,15 +705,12 @@ function createSanityVimeo(video = {}, path, project, locale, runtime, layout) {
     portrait: "0",
   });
   iframe.src = `https://player.vimeo.com/video/${id}?${query.toString()}`;
-  iframe.title = video.caption?.[locale] || "Vimeo video";
+  iframe.title = "Vimeo video";
   iframe.loading = "lazy";
   iframe.allow = "autoplay; fullscreen; picture-in-picture";
   iframe.allowFullscreen = true;
   frame.appendChild(iframe);
   figure.appendChild(frame);
-
-  const caption = video.caption?.[locale] || video.caption?.pt || video.caption?.en;
-  if (caption) figure.appendChild(createElement("figcaption", "project-media-caption", caption));
   return figure;
 }
 
@@ -624,21 +719,62 @@ function getVimeoId(url = "") {
   return match?.[1] || "";
 }
 
-function createSanityCredits(project, runtime) {
-  const section = createElement("section", "project-cms-credits");
-  const content = createElement("div", "project-cms-credits__content");
-  section.id = "project-cms-credits";
-  section.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: "credits"});
-  section.appendChild(createBilingualHeading("Credits", "créditos"));
-  (project.credits || []).forEach((credit) => {
+function createBilingualInlineText(content = {}, className = "") {
+  const localized = normalizeLocalizedText(content);
+  const wrapper = createElement("p", className);
+  if (localized.pt) {
+    const pt = createElement("span", `${className}__pt`, localized.pt);
+    pt.lang = "pt-BR";
+    wrapper.appendChild(pt);
+  }
+  if (localized.pt && localized.en) wrapper.appendChild(document.createTextNode(" / "));
+  if (localized.en) {
+    const en = createElement("span", `${className}__en`, localized.en);
+    en.lang = "en";
+    wrapper.appendChild(en);
+  }
+  return wrapper;
+}
+
+function createCreditsAccordion(credits = [], runtime, project = {}) {
+  const accordion = createElement("div", "project-credits-accordion");
+  const trigger = createElement("button", "project-summary__credits");
+  const label = createElement("span", "project-summary__credits-label");
+  const en = createElement("span", "project-summary__credits-en", "Full credits");
+  const pt = createElement("span", "project-summary__credits-pt", "Créditos completos");
+  const arrow = createElement("span", "project-summary__credits-arrow", "↓");
+  const panel = createElement("div", "project-credits-accordion__panel");
+  const safeId = String(project.slug || project._id || "project").replace(/[^a-z0-9_-]+/gi, "-");
+  panel.id = `project-credits-${safeId}`;
+  panel.hidden = true;
+  en.lang = "en";
+  pt.lang = "pt-BR";
+  label.append(en, document.createTextNode(" / "), pt);
+  trigger.type = "button";
+  trigger.setAttribute("aria-expanded", "false");
+  trigger.setAttribute("aria-controls", panel.id);
+  trigger.append(label, arrow);
+
+  credits.forEach((credit) => {
     const item = createElement("p", "project-cms-credit");
-    item.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: `credits[_key==\"${credit._key}\"]`});
+    if (runtime && project._id && credit._key) {
+      item.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: `credits[_key==\"${credit._key}\"]`});
+    }
     if (credit.label) item.appendChild(createElement("strong", "", `${credit.label}: `));
     item.appendChild(document.createTextNode(credit.value || ""));
-    content.appendChild(item);
+    panel.appendChild(item);
   });
-  section.appendChild(content);
-  return section;
+
+  if (runtime && project._id) {
+    accordion.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: "credits"});
+  }
+  trigger.addEventListener("click", () => {
+    const expanded = trigger.getAttribute("aria-expanded") === "true";
+    trigger.setAttribute("aria-expanded", String(!expanded));
+    panel.hidden = expanded;
+  });
+  accordion.append(trigger, panel);
+  return accordion;
 }
 
 function getProjectMedia(project) {
@@ -674,35 +810,23 @@ function createProjectMediaPair(first, second) {
 function createProjectSummary(project) {
   const summary = createElement("section", "project-summary");
   const meta = createElement("div", "project-summary__meta");
-  const credits = createElement("button", "project-summary__credits", "full credits↓");
-  credits.type = "button";
-  credits.addEventListener("click", () => {
-    document.getElementById("project-details")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  });
-  meta.append(createElement("p", "", project.projectType || project.category || ""), credits);
+  const credits = createCreditsAccordion(project.credits || [], null, project);
+  meta.append(createBilingualInlineText(project.projectType || project.category || "", "project-summary__type"), credits);
   summary.append(createElement("h1", "project-summary__title", project.title || ""), meta);
   return summary;
 }
 
 function createProjectDetails(project) {
   const details = createElement("section", "project-details");
-  const credits = createElement("div", "project-credits");
   const copy = createElement("div", "project-copy");
-  const creditText = createElement("div", "project-credits__content");
   const en = createElement("article", "project-language project-language--en");
   const pt = createElement("article", "project-language project-language--pt");
   details.id = "project-details";
 
-  (project.credits || []).forEach((credit) => {
-    const value = createElement("p", "", credit.value || "");
-    if (credit.label) value.dataset.label = credit.label;
-    creditText.appendChild(value);
-  });
   en.append(createElement("strong", "", "EN"), document.createTextNode(project.descriptionEn ? ` ${project.descriptionEn}` : ""));
   pt.append(createElement("strong", "", "PT"), document.createTextNode(project.descriptionPt ? ` ${project.descriptionPt}` : ""));
-  credits.append(createBilingualHeading("Credits", "créditos"), creditText);
   copy.append(createBilingualHeading("Projeto", "project"), en, pt);
-  details.append(credits, copy);
+  details.appendChild(copy);
   return details;
 }
 
@@ -712,18 +836,17 @@ function createBilingualHeading(primary, secondary) {
   return heading;
 }
 
-function createProjectNavigation(project, projects, options = {}) {
+function createProjectNavigation(project, projects) {
   const nav = createElement("nav", "project-navigation");
   const index = projects.findIndex((item) => item.slug === project.slug);
   const previous = projects.length > 1 ? projects[(index - 1 + projects.length) % projects.length] : null;
   const next = projects.length > 1 ? projects[(index + 1) % projects.length] : null;
-  const cmsQuery = options.cms ? "&cms=1" : "";
-  const workUrl = options.cms ? "work.html?cms=1" : "work.html";
+  const workUrl = "work.html";
   nav.setAttribute("aria-label", "Navegação entre projetos");
   nav.append(
-    createPageNavLink(previous ? `project.html?slug=${encodeURIComponent(previous.slug)}${cmsQuery}` : workUrl, "left", previous ? `Projeto anterior: ${previous.title}` : "Voltar para Work"),
+    createPageNavLink(previous ? `project.html?slug=${encodeURIComponent(previous.slug)}` : workUrl, "left", previous ? `Projeto anterior: ${previous.title}` : "Voltar para Work"),
     createPageNavLink(workUrl, "up", "Voltar para Work"),
-    createPageNavLink(next ? `project.html?slug=${encodeURIComponent(next.slug)}${cmsQuery}` : workUrl, "right", next ? `Próximo projeto: ${next.title}` : "Voltar para Work")
+    createPageNavLink(next ? `project.html?slug=${encodeURIComponent(next.slug)}` : workUrl, "right", next ? `Próximo projeto: ${next.title}` : "Voltar para Work")
   );
   return nav;
 }

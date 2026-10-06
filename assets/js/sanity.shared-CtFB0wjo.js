@@ -1,12 +1,12 @@
 const E = "image-Tb9Ew8CXIwaY6R1kjMvI0uRR-2000x3000-jpg";
 function R(r) {
-  const [, t, i, n] = r.split("-");
-  if (!t || !i || !n)
+  const [, t, i, o] = r.split("-");
+  if (!t || !i || !o)
     throw new Error(`Malformed asset _ref '${r}'. Expected an id like "${E}".`);
-  const [o, e] = i.split("x"), s = +o, h = +e;
+  const [n, e] = i.split("x"), s = +n, h = +e;
   if (!(isFinite(s) && isFinite(h)))
     throw new Error(`Malformed asset _ref '${r}'. Expected an id like "${E}".`);
-  return { id: t, width: s, height: h, format: n };
+  return { id: t, width: s, height: h, format: o };
 }
 const N = (r) => {
   const t = r;
@@ -17,18 +17,18 @@ const N = (r) => {
 }, H = (r) => {
   const t = r;
   return t && t.asset ? typeof t.asset.url == "string" : !1;
-}, V = (r) => {
+}, L = (r) => {
   if (typeof r == "object" && r !== null) {
     const t = r;
     return t._upload && (!t.asset || !t.asset._ref);
   }
   return !1;
 };
-function D(r) {
+function V(r) {
   if (!r)
     return null;
   let t;
-  if (typeof r == "string" && L(r))
+  if (typeof r == "string" && D(r))
     t = {
       asset: { _ref: v(r) }
     };
@@ -59,7 +59,7 @@ function D(r) {
   const i = r;
   return i.crop && (t.crop = i.crop), i.hotspot && (t.hotspot = i.hotspot), F(t);
 }
-function L(r) {
+function D(r) {
   return /^https?:\/\//.test(`${r}`);
 }
 function v(r) {
@@ -107,18 +107,18 @@ function W(r) {
   let t = { ...r || {} };
   const i = t.source;
   delete t.source;
-  const n = D(i);
-  if (!n) {
-    if (i && V(i))
+  const o = V(i);
+  if (!o) {
+    if (i && L(i))
       return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8HwQACfsD/QNViZkAAAAASUVORK5CYII=";
     throw new Error(`Unable to resolve image URL from source (${JSON.stringify(i)})`);
   }
-  const o = n.asset._ref || n.asset._id || "", e = R(o), s = Math.round(n.crop.left * e.width), h = Math.round(n.crop.top * e.height), p = {
+  const n = o.asset._ref || o.asset._id || "", e = R(n), s = Math.round(o.crop.left * e.width), h = Math.round(o.crop.top * e.height), p = {
     left: s,
     top: h,
-    width: Math.round(e.width - n.crop.right * e.width - s),
-    height: Math.round(e.height - n.crop.bottom * e.height - h)
-  }, a = n.hotspot.height * e.height / 2, f = n.hotspot.width * e.width / 2, d = n.hotspot.x * e.width, u = n.hotspot.y * e.height, l = {
+    width: Math.round(e.width - o.crop.right * e.width - s),
+    height: Math.round(e.height - o.crop.bottom * e.height - h)
+  }, a = o.hotspot.height * e.height / 2, f = o.hotspot.width * e.width / 2, d = o.hotspot.x * e.width, u = o.hotspot.y * e.height, l = {
     left: d - f,
     top: u - a,
     right: d + f,
@@ -127,9 +127,9 @@ function W(r) {
   return t.rect || t.focalPoint || t.ignoreImageParams || t.crop || (t = { ...t, ...q({ crop: p, hotspot: l }, t) }), z({ ...t, asset: e });
 }
 function z(r) {
-  const t = (r.baseUrl || "https://cdn.sanity.io").replace(/\/+$/, ""), i = r.vanityName ? `/${r.vanityName}` : "", n = `${r.asset.id}-${r.asset.width}x${r.asset.height}.${r.asset.format}${i}`;
-  let o;
-  r.mediaLibraryId ? o = `${t}/media-libraries/${r.mediaLibraryId}/images/${n}` : r.canvasId ? o = `${t}/images/canvases/${r.canvasId}/${n}` : o = `${t}/images/${r.projectId}/${r.dataset}/${n}`;
+  const t = (r.baseUrl || "https://cdn.sanity.io").replace(/\/+$/, ""), i = r.vanityName ? `/${r.vanityName}` : "", o = `${r.asset.id}-${r.asset.width}x${r.asset.height}.${r.asset.format}${i}`;
+  let n;
+  r.mediaLibraryId ? n = `${t}/media-libraries/${r.mediaLibraryId}/images/${o}` : r.canvasId ? n = `${t}/images/canvases/${r.canvasId}/${o}` : n = `${t}/images/${r.projectId}/${r.dataset}/${o}`;
   const e = [];
   if (r.rect) {
     const { left: h, top: p, width: a, height: f } = r.rect;
@@ -140,14 +140,14 @@ function z(r) {
   return s && e.push(`flip=${s}`), S.forEach((h) => {
     const [p, a] = h;
     typeof r[p] < "u" ? e.push(`${a}=${encodeURIComponent(r[p])}`) : typeof r[a] < "u" && e.push(`${a}=${encodeURIComponent(r[a])}`);
-  }), e.length === 0 ? o : `${o}?${e.join("&")}`;
+  }), e.length === 0 ? n : `${n}?${e.join("&")}`;
 }
 function q(r, t) {
   let i;
-  const n = t.width, o = t.height;
-  if (!(n && o))
-    return { width: n, height: o, rect: r.crop };
-  const e = r.crop, s = r.hotspot, h = n / o;
+  const o = t.width, n = t.height;
+  if (!(o && n))
+    return { width: o, height: n, rect: r.crop };
+  const e = r.crop, s = r.hotspot, h = o / n;
   if (e.width / e.height > h) {
     const p = Math.round(e.height), a = Math.round(p * h), f = Math.max(0, Math.round(e.top)), d = Math.round((s.right - s.left) / 2 + s.left);
     let u = Math.max(0, Math.round(d - a / 2));
@@ -158,8 +158,8 @@ function q(r, t) {
     u < e.top ? u = e.top : u + a > e.top + e.height && (u = e.top + e.height - a), i = { left: f, top: u, width: p, height: a };
   }
   return {
-    width: n,
-    height: o,
+    width: o,
+    height: n,
     rect: i
   };
 }
@@ -171,18 +171,18 @@ function Y(r) {
   return r && "clientConfig" in r ? typeof r.clientConfig == "object" : !1;
 }
 function x(r) {
-  const { apiHost: t, projectId: i, dataset: n } = r, o = {
+  const { apiHost: t, projectId: i, dataset: o } = r, n = {
     baseUrl: (t || "https://api.sanity.io").replace(/^https:\/\/api\./, "https://cdn.")
   }, e = r.resource ?? r["~experimental_resource"];
   if (e?.type === "media-library") {
     if (typeof e.id != "string" || e.id.length === 0)
       throw new Error('Media library clients must include an id in "resource"');
-    return { ...o, mediaLibraryId: e.id };
+    return { ...n, mediaLibraryId: e.id };
   }
   if (e?.type === "canvas") {
     if (typeof e.id != "string" || e.id.length === 0)
       throw new Error('Canvas clients must include an id in "resource"');
-    return { ...o, canvasId: e.id };
+    return { ...n, canvasId: e.id };
   }
   if (e?.type === "dataset") {
     if (typeof e.id != "string" || e.id.length === 0)
@@ -192,16 +192,16 @@ function x(r) {
       throw new Error(
         'Dataset resource id must be in the format "projectId.dataset", got: ' + e.id
       );
-    return { ...o, projectId: s, dataset: h };
+    return { ...n, projectId: s, dataset: h };
   }
-  return { ...o, projectId: i, dataset: n };
+  return { ...n, projectId: i, dataset: o };
 }
 function J(r) {
   const t = S;
   for (const i of t) {
-    const [n, o] = i;
-    if (r === n || r === o)
-      return n;
+    const [o, n] = i;
+    if (r === o || r === n)
+      return o;
   }
   return r;
 }
@@ -217,13 +217,13 @@ function dt(r) {
   return G(m, r);
 }
 function Z(r, t) {
-  const i = t.baseUrl || r.baseUrl, n = { baseUrl: i };
-  for (const o in t)
-    if (t.hasOwnProperty(o)) {
-      const e = J(o);
-      n[e] = t[o];
+  const i = t.baseUrl || r.baseUrl, o = { baseUrl: i };
+  for (const n in t)
+    if (t.hasOwnProperty(n)) {
+      const e = J(n);
+      o[e] = t[n];
     }
-  return { baseUrl: i, ...n };
+  return { baseUrl: i, ...o };
 }
 class m {
   options;
@@ -249,8 +249,8 @@ class m {
     return this.withOptions({ projectId: t });
   }
   withClient(t) {
-    const i = j(t), n = { ...this.options };
-    return delete n.baseUrl, delete n.projectId, delete n.dataset, delete n.mediaLibraryId, delete n.canvasId, new m(null, { ...i, ...n });
+    const i = j(t), o = { ...this.options };
+    return delete o.baseUrl, delete o.projectId, delete o.dataset, delete o.mediaLibraryId, delete o.canvasId, new m(null, { ...i, ...o });
   }
   // Specify background color
   bg(t) {
@@ -296,8 +296,8 @@ class m {
     return this.withOptions({ sharpen: t });
   }
   // Specify the desired rectangle of the image
-  rect(t, i, n, o) {
-    return this.withOptions({ rect: { left: t, top: i, width: n, height: o } });
+  rect(t, i, o, n) {
+    return this.withOptions({ rect: { left: t, top: i, width: o, height: n } });
   }
   // Specify the image format of the image. 'jpg', 'pjpg', 'png', 'webp'
   format(t) {
@@ -387,36 +387,36 @@ function P(r) {
   return (typeof t == "number" || t === "") && (typeof i == "number" || i === "");
 }
 function et(r, t, i) {
-  const n = typeof t == "string" ? U(t) : t;
-  if (!Array.isArray(n))
+  const o = typeof t == "string" ? U(t) : t;
+  if (!Array.isArray(o))
     throw new Error("Path must be an array or a string");
-  let o = r;
-  for (let e = 0; e < n.length; e++) {
-    const s = n[e];
+  let n = r;
+  for (let e = 0; e < o.length; e++) {
+    const s = o[e];
     if (O(s)) {
-      if (!Array.isArray(o))
+      if (!Array.isArray(n))
         return i;
-      o = o[s];
+      n = n[s];
     }
     if (g(s)) {
-      if (!Array.isArray(o))
+      if (!Array.isArray(n))
         return i;
-      o = o.find((h) => h._key === s._key);
+      n = n.find((h) => h._key === s._key);
     }
-    if (typeof s == "string" && (o = typeof o == "object" && o !== null ? o[s] : void 0), typeof o > "u")
+    if (typeof s == "string" && (n = typeof n == "object" && n !== null ? n[s] : void 0), typeof n > "u")
       return i;
   }
-  return o;
+  return n;
 }
 function k(r) {
   if (!Array.isArray(r))
     throw new Error("Path is not an array");
-  return r.reduce((t, i, n) => {
-    const o = typeof i;
-    if (o === "number")
+  return r.reduce((t, i, o) => {
+    const n = typeof i;
+    if (n === "number")
       return `${t}[${i}]`;
-    if (o === "string")
-      return `${t}${n === 0 ? "" : "."}${i}`;
+    if (n === "string")
+      return `${t}${o === 0 ? "" : "."}${i}`;
     if (g(i) && i._key)
       return `${t}[_key=="${i._key}"]`;
     if (Array.isArray(i)) {
@@ -435,16 +435,16 @@ function U(r) {
   return t.map(it);
 }
 function it(r) {
-  return O(r) ? nt(r) : g(r) ? ot(r) : P(r) ? st(r) : r;
-}
-function nt(r) {
-  return Number(r.replace(/[^\d]/g, ""));
+  return O(r) ? ot(r) : g(r) ? nt(r) : P(r) ? st(r) : r;
 }
 function ot(r) {
+  return Number(r.replace(/[^\d]/g, ""));
+}
+function nt(r) {
   return { _key: r.match(b)[1] };
 }
 function st(r) {
-  const [t, i] = r.split(":").map((n) => n === "" ? n : Number(n));
+  const [t, i] = r.split(":").map((o) => o === "" ? o : Number(o));
   return [t, i];
 }
 var lt = /* @__PURE__ */ Object.freeze({
@@ -502,8 +502,8 @@ function mt(r) {
   const {
     baseUrl: t,
     workspace: i = "default",
-    tool: n = "default",
-    id: o,
+    tool: o = "default",
+    id: n,
     type: e,
     path: s,
     projectId: h,
@@ -513,20 +513,20 @@ function mt(r) {
     throw new Error("baseUrl is required");
   if (!s)
     throw new Error("path is required");
-  if (!o)
+  if (!n)
     throw new Error("id is required");
   if (t !== "/" && t.endsWith("/"))
     throw new Error("baseUrl must not end with a slash");
-  const a = i === "default" ? void 0 : i, f = n === "default" ? void 0 : n, d = A(o), u = Array.isArray(s) ? k(ft(s)) : s, l = new URLSearchParams({
+  const a = i === "default" ? void 0 : i, f = o === "default" ? void 0 : o, d = A(n), u = Array.isArray(s) ? k(ft(s)) : s, l = new URLSearchParams({
     baseUrl: t,
     id: d,
     type: e,
     path: u
   });
-  if (a && l.set("workspace", a), f && l.set("tool", f), h && l.set("projectId", h), p && l.set("dataset", p), ut(o))
+  if (a && l.set("workspace", a), f && l.set("tool", f), h && l.set("projectId", h), p && l.set("dataset", p), ut(n))
     l.set("perspective", "published");
-  else if (w(o)) {
-    const C = pt(o);
+  else if (w(n)) {
+    const C = pt(n);
     l.set("perspective", C);
   }
   const $ = [t === "/" ? "" : t];
@@ -563,6 +563,7 @@ const yt = {
   "slug": slug.current,
   projectType,
   year,
+  heroLayout,
   cover{..., image${c}},
   credits[]{_key, label, value},
   workOrder,
@@ -576,7 +577,6 @@ const yt = {
     autoplay,
     loop,
     muted,
-    caption,
     content,
     media{..., image${c}},
     left{
@@ -607,4 +607,4 @@ export {
   $t as p,
   lt as s
 };
-//# sourceMappingURL=sanity.shared-BjhqLsb8.js.map
+//# sourceMappingURL=sanity.shared-CtFB0wjo.js.map

@@ -1,6 +1,6 @@
 # Portfolio Bruno
 
-Implementação estática do portfólio de Bruno Oliveira, reconstruída a partir do Figma atual. O projeto usa HTML, CSS e JavaScript sem framework e mantém conteúdo e apresentação separados para facilitar uma futura integração com CMS.
+Implementação estática do portfólio de Bruno Oliveira, reconstruída a partir do Figma atual. O projeto usa HTML, CSS e JavaScript sem framework, com Sanity como fonte dos projetos publicados.
 
 ## Páginas
 
@@ -11,7 +11,8 @@ Implementação estática do portfólio de Bruno Oliveira, reconstruída a parti
 
 ## Estrutura
 
-- `data/site-content.json`: fonte única de conteúdo.
+- `data/site-content.json`: conteúdo global, Home, About e fallback local de projetos.
+- `studio/`: Sanity Studio, schemas e preview autenticado.
 - `script.js`: componentes compartilhados, renderização e navegação.
 - `style.css`: sistema visual e responsividade.
 - `portrait-points.js`: retrato interativo da Home.

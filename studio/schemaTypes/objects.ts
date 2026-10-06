@@ -18,6 +18,9 @@ const localizedTextFields = [
           decorators: [
             {title: 'Strong', value: 'strong'},
             {title: 'Emphasis', value: 'em'},
+            {title: 'Black', value: 'colorBlack'},
+            {title: 'White', value: 'colorWhite'},
+            {title: 'Orange', value: 'colorOrange'},
           ],
           annotations: [
             {
@@ -64,6 +67,27 @@ export const localizedBlockContent = defineType({
     ),
 })
 
+export const localizedAltText = defineType({
+  name: 'localizedAltText',
+  title: 'Alternative text in Portuguese and English',
+  type: 'object',
+  fields: [
+    defineField({name: 'pt', title: 'Alt text PT', type: 'string', validation: (Rule) => Rule.max(240)}),
+    defineField({name: 'en', title: 'Alt text EN', type: 'string', validation: (Rule) => Rule.max(240)}),
+  ],
+})
+
+function validateLocalizedAlt(value: unknown, context: {parent?: {decorative?: boolean; image?: {asset?: unknown}}}, optional = false) {
+  const parent = context.parent || {}
+  if (optional && !parent.image?.asset) return true
+  if (parent.decorative) return true
+  if (typeof value === 'string' && value.trim()) return true
+  const alt = value as {pt?: string; en?: string} | undefined
+  return alt?.pt?.trim() && alt?.en?.trim()
+    ? true
+    : 'Add alternative text in Portuguese and English, or mark the image as decorative.'
+}
+
 export const accessibleImage = defineType({
   name: 'accessibleImage',
   title: 'Accessible image',
@@ -73,21 +97,17 @@ export const accessibleImage = defineType({
     defineField({name: 'decorative', title: 'Decorative image', type: 'boolean', initialValue: false}),
     defineField({
       name: 'alt',
-      title: 'Alt text',
-      type: 'string',
-      description: 'Required unless this image is decorative.',
-      validation: (Rule) =>
-        Rule.max(180).custom((value, context) => {
-          if (context.parent?.decorative || value?.trim()) return true
-          return 'Describe this image, or mark it as decorative.'
-        }),
+      title: 'Alternative text',
+      type: 'localizedAltText',
+      description: 'Required in Portuguese and English unless this image is decorative.',
+      hidden: ({parent}) => Boolean(parent?.decorative),
+      validation: (Rule) => Rule.custom((value, context) => validateLocalizedAlt(value, context)),
     }),
-    defineField({name: 'caption', title: 'Caption', type: 'localizedString'}),
   ],
   preview: {
-    select: {title: 'alt', media: 'image', decorative: 'decorative'},
-    prepare({title, media, decorative}) {
-      return {title: title || (decorative ? 'Decorative image' : 'Image'), subtitle: decorative ? 'Decorative' : 'Accessible image', media}
+    select: {altPt: 'alt.pt', altEn: 'alt.en', media: 'image', decorative: 'decorative'},
+    prepare({altPt, altEn, media, decorative}) {
+      return {title: altPt || altEn || (decorative ? 'Decorative image' : 'Image'), subtitle: decorative ? 'Decorative' : 'Accessible image', media}
     },
   },
 })
@@ -101,22 +121,17 @@ export const optionalAccessibleImage = defineType({
     defineField({name: 'decorative', title: 'Decorative image', type: 'boolean', initialValue: false}),
     defineField({
       name: 'alt',
-      title: 'Alt text',
-      type: 'string',
-      description: 'Required when an image is set, unless it is decorative.',
-      validation: (Rule) =>
-        Rule.max(180).custom((value, context) => {
-          const {image, decorative} = context.parent || {}
-          if (!image?.asset || decorative || value?.trim()) return true
-          return 'Describe this image, or mark it as decorative.'
-        }),
+      title: 'Alternative text',
+      type: 'localizedAltText',
+      description: 'Required in Portuguese and English when an image is set, unless it is decorative.',
+      hidden: ({parent}) => Boolean(parent?.decorative),
+      validation: (Rule) => Rule.custom((value, context) => validateLocalizedAlt(value, context, true)),
     }),
-    defineField({name: 'caption', title: 'Caption', type: 'localizedString'}),
   ],
   preview: {
-    select: {title: 'alt', media: 'image', decorative: 'decorative'},
-    prepare({title, media, decorative}) {
-      return {title: title || (decorative ? 'Decorative image' : 'Image'), subtitle: decorative ? 'Decorative' : 'Accessible image', media}
+    select: {altPt: 'alt.pt', altEn: 'alt.en', media: 'image', decorative: 'decorative'},
+    prepare({altPt, altEn, media, decorative}) {
+      return {title: altPt || altEn || (decorative ? 'Decorative image' : 'Image'), subtitle: decorative ? 'Decorative' : 'Accessible image', media}
     },
   },
 })
@@ -126,8 +141,8 @@ export const credit = defineType({
   title: 'Credit',
   type: 'object',
   fields: [
-    defineField({name: 'label', title: 'Role / label', type: 'string', validation: (Rule) => Rule.max(80)}),
-    defineField({name: 'value', title: 'Name / value', type: 'string', validation: (Rule) => Rule.required().max(160)}),
+    defineField({name: 'label', title: 'Role / label', type: 'string'}),
+    defineField({name: 'value', title: 'Name / value', type: 'string', validation: (Rule) => Rule.required()}),
   ],
   preview: {
     select: {label: 'label', title: 'value'},
@@ -169,6 +184,38 @@ export const wideMedia = defineType({
     select: {assetRef: 'media.image.asset._ref', media: 'media.image'},
     prepare({assetRef, media}) {
       return {title: `Wide Media — ${imageName(assetRef)}`, media}
+    },
+  },
+})
+
+export const mediaBlock = defineType({
+  name: 'mediaBlock',
+  title: 'Media',
+  type: 'object',
+  fields: [
+    defineField({name: 'media', title: 'Image', type: 'accessibleImage', validation: (Rule) => Rule.required()}),
+    defineField({
+      name: 'layout',
+      title: 'Image layout',
+      type: 'string',
+      initialValue: 'wide',
+      options: {
+        list: [
+          {title: 'Full width', value: 'fullWidth'},
+          {title: 'Wide', value: 'wide'},
+          {title: 'Half — left', value: 'halfLeft'},
+          {title: 'Half — right', value: 'halfRight'},
+        ],
+        layout: 'radio',
+      },
+      validation: (Rule) => Rule.required(),
+    }),
+  ],
+  preview: {
+    select: {layout: 'layout', altPt: 'media.alt.pt', altEn: 'media.alt.en', media: 'media.image'},
+    prepare({layout, altPt, altEn, media}) {
+      const labels: Record<string, string> = {fullWidth: 'Full Width', wide: 'Wide', halfLeft: 'Half — left', halfRight: 'Half — right'}
+      return {title: `Media — ${labels[layout] || 'Wide'} — ${altPt || altEn || 'image'}`, media}
     },
   },
 })
@@ -360,7 +407,6 @@ export const vimeoBlock = defineType({
       validation: (Rule) => Rule.required(),
     }),
     ...vimeoFields,
-    defineField({name: 'caption', title: 'Caption', type: 'localizedString'}),
   ],
   validation: (Rule) => Rule.custom(validateVimeoSettings),
   preview: {
