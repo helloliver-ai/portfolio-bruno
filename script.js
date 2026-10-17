@@ -3,8 +3,118 @@ const PAGE_NAV_ICON = "assets/icons/page-nav.svg";
 const EXTERNAL_ARROW_ICON = "assets/icons/arrow-ne.svg";
 const DOWN_ARROW_ICON = "assets/icons/arrow-down.svg";
 const WORK_VISIBLE_ROWS = 5;
+const PAGE_SNAP_KEY = "portfolio-navigation";
+const PAGE_POSITION_KEY = "portfolio-position";
+let pageNavigation;
+let pageIsLeaving = false;
+
+function navigationStorage(key, value) {
+  try {
+    if (value === undefined) return JSON.parse(sessionStorage.getItem(key) || "null");
+    if (value === null) sessionStorage.removeItem(key);
+    else sessionStorage.setItem(key, JSON.stringify(value));
+  } catch { /* Navigation still works when browser storage is unavailable. */ }
+  return null;
+}
+
+function pageIdentity(url) {
+  const path = new URL(url, location.href).pathname.replace(/\/$/, "").replace(/\.html$/, "");
+  return path === "" || path === "/index" ? "home" : path.slice(1);
+}
+
+function pageDirection(from, to, entry = pageNavigation) {
+  if (pageIdentity(from) === "project" && entry?.from === to) return -entry.direction;
+  const order = {home: 0, work: 1, about: 2, project: 3};
+  return Math.sign(order[pageIdentity(to)] - order[pageIdentity(from)]) || 1;
+}
+
+function initializePageNavigation(restored = false) {
+  const url = location.pathname + location.search;
+  const pending = navigationStorage(PAGE_SNAP_KEY);
+  const last = navigationStorage(PAGE_POSITION_KEY);
+  const kind = performance.getEntriesByType?.("navigation")[0]?.type;
+  const previousEntry = history.state?.portfolioNavigation;
+  let direction = 0;
+
+  if (pending?.to === url && Date.now() - pending.at < 30000 && kind !== "reload" && kind !== "back_forward" && !restored) {
+    pageNavigation = {index: pending.index, from: pending.from, direction: pending.direction};
+    direction = pending.direction;
+  } else if (previousEntry) {
+    pageNavigation = previousEntry;
+    if ((kind === "back_forward" || restored) && last) direction = Math.sign(previousEntry.index - last.index);
+  } else {
+    pageNavigation = {index: (last?.index ?? -1) + 1, from: null, direction: 0};
+  }
+  try { history.replaceState({...history.state, portfolioNavigation: pageNavigation}, ""); } catch { /* Keep native history. */ }
+  navigationStorage(PAGE_POSITION_KEY, {index: pageNavigation.index});
+  navigationStorage(PAGE_SNAP_KEY, null);
+  document.documentElement.style.setProperty("--page-direction", String(direction));
+}
+
+function revealPage() {
+  window.clearTimeout(window.portfolioLoadingGuard);
+  const html = document.documentElement;
+  html.classList.remove("is-page-leaving");
+  html.classList.add("is-page-entering");
+  delete html.dataset.pageState;
+  document.querySelector("main")?.removeAttribute("aria-busy");
+  window.setTimeout(() => html.classList.remove("is-page-entering"), 350);
+}
+
+function installPageNavigation() {
+  initializePageNavigation();
+  document.addEventListener("click", (event) => {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const link = event.target.closest?.("a[href]");
+    if (!link || link.hasAttribute("download") || (link.target && link.target !== "_self")) return;
+    const target = new URL(link.href, location.href);
+    if (target.origin !== location.origin || !["home", "work", "about", "project"].includes(pageIdentity(target.href))) return;
+    const current = location.pathname + location.search;
+    const next = target.pathname + target.search;
+    if (next === current || (pageIdentity(target.href) === pageIdentity(location.href) && target.search === location.search)) return;
+    // Let Sanity Presentation control its own preview navigation.
+    if (document.body.classList.contains("is-sanity-preview")) return;
+    event.preventDefault();
+    if (pageIsLeaving) return;
+    pageIsLeaving = true;
+    const direction = pageDirection(current, next);
+    navigationStorage(PAGE_SNAP_KEY, {from: current, to: next, direction, index: (pageNavigation?.index || 0) + 1, at: Date.now()});
+    const html = document.documentElement;
+    html.style.setProperty("--page-direction", String(direction));
+    html.classList.remove("is-page-entering");
+    html.classList.add("is-page-leaving");
+    const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    window.setTimeout(() => location.assign(target.href), reduced ? 0 : 320);
+  });
+  window.addEventListener("pageshow", (event) => {
+    if (!event.persisted) return;
+    pageIsLeaving = false;
+    initializePageNavigation(true);
+    revealPage();
+  });
+}
+
+function withDeadline(promise, ms = 4000) {
+  let timer;
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => { timer = window.setTimeout(() => reject(new Error("Tempo limite de carregamento.")), ms); }),
+  ]).finally(() => window.clearTimeout(timer));
+}
+
+async function settlePageLayout() {
+  // Only above-the-fold media and the actual font can affect the initial composition.
+  const media = [...document.querySelectorAll("main img")].filter((img) => img.loading !== "lazy" && img.getBoundingClientRect().top < innerHeight);
+  await Promise.allSettled([
+    withDeadline(document.fonts?.ready || Promise.resolve(), 1500),
+    ...media.map((img) => withDeadline(img.decode?.() || Promise.resolve(), 1200)),
+  ]);
+  await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+}
 
 document.addEventListener("DOMContentLoaded", async () => {
+  installPageNavigation();
+  document.querySelector("main")?.setAttribute("aria-busy", "true");
   try {
     const content = await loadSiteContent();
     renderHeader(content.site);
@@ -24,6 +134,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   } catch (error) {
     console.error("Não foi possível carregar o conteúdo do site.", error);
     renderLoadError();
+  } finally {
+    try { await settlePageLayout(); } finally { revealPage(); }
   }
 });
 
@@ -38,9 +150,40 @@ function isSanityProjectPreview() {
 }
 
 async function loadSiteContent() {
-  const response = await fetch(CONTENT_URL, { cache: "no-store" });
-  if (!response.ok) throw new Error(`Falha ao carregar ${CONTENT_URL}: ${response.status}`);
-  return response.json();
+  const content = await withDeadline(fetch(CONTENT_URL, { cache: "no-store" }).then((response) => {
+    if (!response.ok) throw new Error(`Falha ao carregar ${CONTENT_URL}: ${response.status}`);
+    return response.json();
+  }));
+  try {
+    const about = await withDeadline(import("./assets/js/sanity-cms.js").then((runtime) => runtime.fetchPublishedAbout()));
+    if (about) mergeAboutContent(content, about);
+  } catch (error) {
+    console.warn("About CMS indisponível; usando o conteúdo local.", error);
+  }
+  return content;
+}
+
+function mergeAboutContent(content, about) {
+  const email = about.contacts?.email;
+  if (email) {
+    content.about.contact.email = email.value || "";
+    content.site.footer.email = email.value || "";
+    content.site.footer.label = email.label || email.value || "";
+    content.home.identity[1] = email.label || email.value || "";
+  }
+  if (about.contacts) {
+    content.about.socials = ["whatsapp", "linkedin", "behance"].map((key, index) => {
+      const contact = about.contacts[key];
+      if (!contact) return content.about.socials[index];
+      const number = key === "whatsapp" ? String(contact.number || "").replace(/\D/g, "") : "";
+      return {label: contact.label || ["WhatsApp", "LinkedIn", "Behance"][index], url: contact.url || (number ? `https://wa.me/${number}` : "")};
+    });
+    content.about.socials.push({label: email?.socialLabel || "e-mail", url: createMailto(content.about.contact.email)});
+  }
+  if (about.experience !== undefined) content.about.experience.entries = about.experience || [];
+  if (about.education !== undefined) content.about.education.entries = about.education || [];
+  if (about.experienceHeading) content.about.experience.heading = about.experienceHeading;
+  if (about.educationHeading) content.about.education.heading = about.educationHeading;
 }
 
 function getCurrentPage() {
@@ -60,28 +203,36 @@ function renderHeader(site) {
   if (!header) return;
 
   const currentPage = getCurrentPage();
-  const nav = createElement("nav", "portfolio-nav");
+  const nav = header.querySelector(".portfolio-nav") || createElement("nav", "portfolio-nav");
   nav.setAttribute("aria-label", "Navegação principal");
+  const items = site.navigation || [];
+  if (nav.children.length !== items.length) {
+    nav.replaceChildren(...items.map(() => createElement("a", "portfolio-nav__link")));
+  }
 
-  (site.navigation || []).forEach((item) => {
-    const link = createElement("a", "portfolio-nav__link", item.label);
+  items.forEach((item, index) => {
+    const link = nav.children[index];
     const isCurrent = item.page === currentPage ||
       (currentPage === "project" && item.page === "work");
-    link.href = item.url;
-    if (isCurrent) link.setAttribute("aria-current", "page");
-    nav.appendChild(link);
+    if (link.textContent !== item.label) link.textContent = item.label;
+    if (link.getAttribute("href") !== item.url) link.href = item.url;
+    if (isCurrent) {
+      if (link.getAttribute("aria-current") !== "page") link.setAttribute("aria-current", "page");
+    } else {
+      link.removeAttribute("aria-current");
+    }
   });
 
-  header.replaceChildren(nav);
+  if (nav.parentElement !== header) header.replaceChildren(nav);
 }
 
 function renderFooter(site) {
   const footer = document.getElementById("site-footer");
   if (!footer) return;
 
-  const email = site.footer?.email || "contato@olabruno.com";
+  const email = site.footer?.email || "";
   const link = createElement("a", "site-footer__email");
-  const label = createElement("span", "site-footer__label", site.footer?.label || "contato@olabruno.com");
+  const label = createElement("span", "site-footer__label", site.footer?.label || email);
   link.href = createMailto(email, site.footer?.emailSubject);
   link.setAttribute("aria-label", `${label.textContent}: ${email}`);
   link.appendChild(label);
@@ -102,12 +253,12 @@ function renderHome(home, site) {
   }
 
   if (identity) {
-    const email = site.footer?.email || "contato@olabruno.com";
+    const email = site.footer?.email || "";
     const lines = home.identity || ["graphic designer", email, "19° 55' S 43° 56' O"];
     lines.forEach((line, index) => {
-      if (index === 1 && line.includes("@")) {
+      if (index === 1 && email) {
         const emailLink = createElement("a", "", line);
-        emailLink.href = createMailto(line);
+        emailLink.href = createMailto(email);
         identity.appendChild(emailLink);
       } else {
         identity.appendChild(document.createTextNode(line));
@@ -134,7 +285,9 @@ function renderAbout(about, site) {
   image.src = about.photo || "";
   image.alt = about.photoAlt || "";
   photo.appendChild(image);
-  bios.append(createBiography("en", about.bio?.en), createBiography("pt", about.bio?.pt));
+  ["en", "pt"].forEach((locale) => {
+    if (about.bio?.[locale]?.lead || about.bio?.[locale]?.detail) bios.appendChild(createBiography(locale, about.bio[locale]));
+  });
   contactBelow.type = "button";
   contactBelow.addEventListener("click", () => {
     document.getElementById("contact")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -144,7 +297,7 @@ function renderAbout(about, site) {
   const lower = createElement("section", "about-lower");
   const contactColumn = createElement("div", "about-contact-column");
   const identity = createAboutIdentity(about.contact);
-  const createCta = createElement("a", "pill-button about-create-cta", about.ctas?.create || "");
+  const createCta = createElement("a", "pill-button about-create-cta", (about.ctas?.create || "").replace(/\s+(?=SOMETHING|TOGETHER)/g, "\n"));
   const socialList = createSocialList(about.socials || []);
   const backTop = createPageNavLink("#top", "up", "Voltar ao topo");
   const professional = createElement("div", "about-professional");
@@ -159,6 +312,7 @@ function renderAbout(about, site) {
 
 function createBiography(language, content = {}) {
   const article = createElement("article", `about-bio about-bio--${language}`);
+  applyBilingualStyle(article, language, content.style);
   const first = document.createElement("p");
   const label = createElement("strong", "about-bio__label", content.label || language.toUpperCase());
   const second = createElement("p", "", content.detail || "");
@@ -189,6 +343,8 @@ function createSocialList(socials) {
       label.href = social.url;
       label.target = "_blank";
       label.rel = "noreferrer";
+    } else {
+      label.tabIndex = 0;
     }
     item.appendChild(label);
     list.appendChild(item);
@@ -198,10 +354,11 @@ function createSocialList(socials) {
 
 function createExperience(experience = {}) {
   const section = createElement("section", "about-experience");
-  section.appendChild(createSectionHeading(experience.title || "experiência", experience.translation || "experience"));
+  section.appendChild(createSectionHeading(experience.heading || {pt: experience.title || "experiência", en: experience.translation || "experience"}));
 
   (experience.entries || []).forEach((entry) => {
     const item = createElement("article", "experience-item");
+    item.lang = "pt-BR";
     const company = createElement(entry.url ? "a" : "span", "experience-item__company");
     company.append(document.createTextNode(entry.company || ""), createExternalArrow());
     if (entry.url) {
@@ -217,15 +374,18 @@ function createExperience(experience = {}) {
 
 function createEducation(education = {}) {
   const section = createElement("section", "about-education");
-  section.append(
-    createSectionHeading(education.title || "educação", education.translation || "education"),
-    createElement("p", "about-education__course", education.course || ""),
-    createElement("p", "about-education__school", education.school || "")
-  );
+  section.appendChild(createSectionHeading(education.heading || {pt: education.title || "educação", en: education.translation || "education"}));
+  const entries = education.entries ?? (education.course ? [education] : []);
+  entries.forEach((entry) => {
+    const course = createElement("p", "about-education__course", entry.course || "");
+    const school = createElement("p", "about-education__school", entry.school || "");
+    course.lang = school.lang = "pt-BR";
+    section.append(course, school);
+  });
   return section;
 }
 
-function createSectionHeading(primary, secondary) {
+function createSectionHeading(content) {
   const heading = createElement("h2", "section-heading");
   const arrow = createElement("span", "section-heading__arrow");
   const icon = document.createElement("img");
@@ -234,7 +394,7 @@ function createSectionHeading(primary, secondary) {
   icon.width = 92;
   icon.height = 106;
   arrow.appendChild(icon);
-  heading.append(arrow, document.createTextNode(primary), createElement("em", "", ` / ${secondary}`));
+  heading.append(arrow, ...createBilingualInlineText(content).childNodes);
   return heading;
 }
 
@@ -320,7 +480,7 @@ function createWorkProjectRow(project) {
 }
 
 function normalizeLocalizedText(value) {
-  if (value && typeof value === "object") return {pt: value.pt || "", en: value.en || ""};
+  if (value && typeof value === "object") return {...value, pt: value.pt?.trim() || "", en: value.en?.trim() || ""};
   const text = String(value || "");
   const separator = text.indexOf(" / ");
   if (separator >= 0) return {en: text.slice(0, separator), pt: text.slice(separator + 3)};
@@ -332,11 +492,13 @@ function createWorkProjectType(localized) {
   if (localized.pt) {
     const pt = createElement("span", "work-project-row__type-pt", localized.pt);
     pt.lang = "pt-BR";
+    applyBilingualStyle(pt, "pt", localized.ptStyle);
     wrapper.appendChild(pt);
   }
   if (localized.en) {
     const en = createElement("span", "work-project-row__type-en", localized.en);
     en.lang = "en";
+    applyBilingualStyle(en, "en", localized.enStyle);
     wrapper.appendChild(en);
   }
   return wrapper;
@@ -402,11 +564,11 @@ function renderProject(work) {
 
 async function renderCmsPage(content) {
   document.body.classList.add("is-cms-mode");
-  const runtime = await import("./assets/js/sanity-cms.js");
+  const runtime = await withDeadline(import("./assets/js/sanity-cms.js"));
   const page = getCurrentPage();
 
   if (page === "work") {
-    const sanityProjects = await runtime.fetchPublishedProjects();
+    const sanityProjects = await withDeadline(runtime.fetchPublishedProjects());
     const projects = (sanityProjects || []).map((project) => {
       const thumbnail = project.thumbnail?.image?.asset ? project.thumbnail : project.cover;
       return {
@@ -430,10 +592,10 @@ async function renderCmsPage(content) {
   if (page === "project") {
     const params = new URLSearchParams(window.location.search);
     const slug = params.get("slug") || "cms-schema-validation-test";
-    const [project, projects] = await Promise.all([
+    const [project, projects] = await withDeadline(Promise.all([
       runtime.fetchPublishedProject(slug),
       runtime.fetchPublishedProjects(),
-    ]);
+    ]));
     if (!project) throw new Error(`Projeto Sanity não encontrado para o slug “${slug}”.`);
     renderSanityProject(project, runtime, {projects});
   }
@@ -447,17 +609,19 @@ async function renderSanityProjectPreview() {
   if (!root) return;
 
   document.body.classList.add("is-sanity-preview");
-  const runtime = await import("./assets/js/sanity-preview.js");
+  const runtime = await withDeadline(import("./assets/js/sanity-preview.js"));
 
   const refresh = async () => {
     const params = new URLSearchParams(window.location.search);
     const slug = params.get("slug") || "cms-schema-validation-test";
-    const response = await fetch(`/api/preview/project?slug=${encodeURIComponent(slug)}`, {
+    const payload = await withDeadline(fetch(`/api/preview/project?slug=${encodeURIComponent(slug)}`, {
       cache: "no-store",
       credentials: "same-origin",
-    });
-    const payload = await response.json();
-    if (!response.ok) throw new Error(payload.error || `Preview request failed: ${response.status}`);
+    }).then(async (response) => {
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || `Preview request failed: ${response.status}`);
+      return result;
+    }));
     renderSanityProject(payload.project, runtime);
   };
 
@@ -482,7 +646,7 @@ function renderSanityProject(project, runtime, options = {}) {
   if (!root) return;
 
   document.documentElement.lang = "pt-BR";
-  document.title = "Project preview | Bruno Oliveira";
+  document.title = `${project.title || "Projeto"} | Bruno Oliveira`;
 
   const caseStudy = createElement("article", "project-case-study project-case-study--cms");
   caseStudy.dataset.sanity = runtime.sanityDataAttribute({
@@ -606,34 +770,69 @@ function createSanityMedia(media, path, className, project, runtime, dimensions)
   if (preferredAlt.language) image.lang = preferredAlt.language;
   image.loading = path === "cover" ? "eager" : "lazy";
   image.decoding = "async";
+  if (dimensions) {
+    image.width = dimensions.width;
+    image.height = dimensions.height;
+  }
   image.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: `${path}.image`});
   figure.appendChild(image);
+  const caption = createMediaCaption(media.caption, `${path}.caption`, project, runtime);
+  if (caption) {
+    figure.classList.add("project-media--captioned");
+    figure.appendChild(caption);
+  }
   return figure;
+}
+
+function createMediaCaption(content, path, project, runtime) {
+  const localized = normalizeLocalizedText(content);
+  if (!localized.pt && !localized.en) return null;
+  const caption = createElement("figcaption", "project-media-caption");
+  caption.append(...createBilingualInlineText(localized).childNodes);
+  caption.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path});
+  return caption;
 }
 
 function getPreferredImageAlt(media = {}) {
   if (media.decorative) return {text: "", language: ""};
   if (typeof media.alt === "string") return {text: media.alt, language: ""};
-  const languages = Array.isArray(navigator.languages) && navigator.languages.length
-    ? navigator.languages
-    : [navigator.language || "en"];
-  const prefersPortuguese = languages[0]?.toLowerCase().startsWith("pt");
-  if (prefersPortuguese) return {text: media.alt?.pt || media.alt?.en || "", language: "pt-BR"};
-  return {text: media.alt?.en || media.alt?.pt || "", language: "en"};
+  // A single alt attribute uses PT first; EN remains available independently.
+  if (media.alt?.pt) return {text: media.alt.pt, language: "pt-BR"};
+  return {text: media.alt?.en || "", language: media.alt?.en ? "en" : ""};
+}
+
+function hasTextContent(content) {
+  return Boolean(content?.title?.trim() || content?.subtitle?.trim() || content?.body?.some((block) =>
+    block.children?.some((child) => child.text?.trim())));
+}
+
+function applyEditorialStyle(element, style = {}) {
+  style = style || {};
+  if (["black", "white", "orange"].includes(style.color)) element.classList.add(`cms-color-${style.color}`);
+  if (typeof style.italic === "boolean") element.classList.add(style.italic ? "cms-italic" : "cms-upright");
+  if (typeof style.bold === "boolean") element.classList.add(style.bold ? "cms-bold" : "cms-regular");
+  return element;
+}
+
+function applyBilingualStyle(element, locale, style) {
+  element.lang = locale === "pt" ? "pt-BR" : "en";
+  element.classList.add("bilingual-text", `bilingual-text--${locale}`);
+  return applyEditorialStyle(element, style);
 }
 
 function createSanityLocalizedText(content, path, project, runtime) {
   const pair = createElement("div", "project-localized-pair");
   ["pt", "en"].forEach((locale) => {
     const localized = content?.[locale];
-    if (!localized) return;
+    if (!hasTextContent(localized)) return;
     const language = locale === "pt" ? "pt-BR" : "en";
     const article = createElement("article", `project-localized-text project-localized-text--${locale}`);
     article.lang = language;
+    applyBilingualStyle(article, locale, localized.style);
     article.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: `${path}.${locale}`});
 
-    if (localized.title) article.appendChild(createElement("h2", "project-localized-text__title", localized.title));
-    if (localized.subtitle) article.appendChild(createElement("p", "project-localized-text__subtitle", localized.subtitle));
+    if (localized.title) article.appendChild(applyEditorialStyle(createElement("h2", "project-localized-text__title", localized.title), localized.style));
+    if (localized.subtitle) article.appendChild(applyEditorialStyle(createElement("p", "project-localized-text__subtitle", localized.subtitle), localized.style));
     if (localized.body?.length) {
       const body = createElement("div", "project-localized-text__body");
       renderPortableText(body, localized.body);
@@ -722,6 +921,8 @@ function createSanityVimeo(video = {}, path, project, runtime, layout) {
   iframe.allowFullscreen = true;
   frame.appendChild(iframe);
   figure.appendChild(frame);
+  const caption = createMediaCaption(video.caption, `${path}.caption`, project, runtime);
+  if (caption) figure.appendChild(caption);
   return figure;
 }
 
@@ -736,12 +937,14 @@ function createBilingualInlineText(content = {}, className = "") {
   if (localized.pt) {
     const pt = createElement("span", `${className}__pt`, localized.pt);
     pt.lang = "pt-BR";
+    applyBilingualStyle(pt, "pt", localized.ptStyle);
     wrapper.appendChild(pt);
   }
   if (localized.pt && localized.en) wrapper.appendChild(document.createTextNode(" / "));
   if (localized.en) {
     const en = createElement("span", `${className}__en`, localized.en);
     en.lang = "en";
+    applyBilingualStyle(en, "en", localized.enStyle);
     wrapper.appendChild(en);
   }
   return wrapper;
@@ -751,7 +954,7 @@ function createCreditsAccordion(credits = [], runtime, project = {}) {
   const accordion = createElement("div", "project-credits-accordion");
   const trigger = createElement("button", "project-summary__credits");
   const label = createElement("span", "project-summary__credits-label");
-  const en = createElement("span", "project-summary__credits-en", "Full credits");
+  const en = createElement("span", "project-summary__credits-en", "Full Credits");
   const pt = createElement("span", "project-summary__credits-pt", "Créditos completos");
   const arrow = createElement("span", "project-summary__credits-arrow", "↓");
   const panel = createElement("div", "project-credits-accordion__panel");
@@ -760,24 +963,29 @@ function createCreditsAccordion(credits = [], runtime, project = {}) {
   panel.hidden = true;
   en.lang = "en";
   pt.lang = "pt-BR";
-  label.append(en, document.createTextNode(" / "), pt);
+  applyBilingualStyle(en, "en");
+  applyBilingualStyle(pt, "pt");
+  label.append(pt, document.createTextNode(" / "), en);
   trigger.type = "button";
   trigger.setAttribute("aria-expanded", "false");
   trigger.setAttribute("aria-controls", panel.id);
   trigger.append(label, arrow);
 
-  credits.forEach((credit) => {
-    const item = createElement("p", "project-cms-credit");
-    if (runtime && project._id && credit._key) {
-      item.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: `credits[_key==\"${credit._key}\"]`});
-    }
-    if (credit.label) item.appendChild(createElement("strong", "", `${credit.label}: `));
-    item.appendChild(document.createTextNode(credit.value || ""));
-    panel.appendChild(item);
+  [{locale: "pt", items: project.creditsPt ?? credits, path: Array.isArray(project.creditsPt) ? "creditsPt" : "credits"},
+    {locale: "en", items: project.creditsEn || [], path: "creditsEn"}].forEach(({locale, items, path}) => {
+    items.filter((credit) => credit.value?.trim() || credit.label?.trim()).forEach((credit) => {
+      const item = applyBilingualStyle(createElement("p", "project-cms-credit"), locale, credit.style);
+      if (runtime && project._id && credit._key) {
+        item.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: `${path}[_key==\"${credit._key}\"]`});
+      }
+      if (credit.label) item.appendChild(applyEditorialStyle(createElement("strong", "", `${credit.label}: `), credit.style));
+      item.appendChild(document.createTextNode(credit.value || ""));
+      panel.appendChild(item);
+    });
   });
 
   if (runtime && project._id) {
-    accordion.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: "credits"});
+    accordion.dataset.sanity = runtime.sanityDataAttribute({id: project._id, path: "creditsPt"});
   }
   trigger.addEventListener("click", () => {
     const expanded = trigger.getAttribute("aria-expanded") === "true";
@@ -832,18 +1040,22 @@ function createProjectDetails(project) {
   const copy = createElement("div", "project-copy");
   const en = createElement("article", "project-language project-language--en");
   const pt = createElement("article", "project-language project-language--pt");
+  applyBilingualStyle(en, "en");
+  applyBilingualStyle(pt, "pt");
   details.id = "project-details";
 
   en.append(createElement("strong", "", "EN"), document.createTextNode(project.descriptionEn ? ` ${project.descriptionEn}` : ""));
   pt.append(createElement("strong", "", "PT"), document.createTextNode(project.descriptionPt ? ` ${project.descriptionPt}` : ""));
-  copy.append(createBilingualHeading("Projeto", "project"), en, pt);
+  if (project.descriptionEn || project.descriptionPt) copy.appendChild(createBilingualHeading("Projeto", "project"));
+  if (project.descriptionEn) copy.appendChild(en);
+  if (project.descriptionPt) copy.appendChild(pt);
   details.appendChild(copy);
   return details;
 }
 
 function createBilingualHeading(primary, secondary) {
   const heading = createElement("h2", "bilingual-heading");
-  heading.append(document.createTextNode(primary), createElement("em", "", ` / ${secondary}`));
+  heading.append(...createBilingualInlineText({pt: primary, en: secondary}).childNodes);
   return heading;
 }
 
@@ -893,7 +1105,7 @@ function getPublishedProjects(projects) {
 
 function createMailto(email, subject = "") {
   const query = subject ? `?subject=${encodeURIComponent(subject)}` : "";
-  return `mailto:${email || "contato@olabruno.com"}${query}`;
+  return email ? `mailto:${email}${query}` : "";
 }
 
 function createElement(tagName, className = "", text = "") {

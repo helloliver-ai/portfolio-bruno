@@ -8,18 +8,15 @@ import {validatePreviewUrl} from '@sanity/preview-url-secret'
 import {perspectiveCookieName} from '@sanity/preview-url-secret/constants'
 
 import {projectQuery, sanityConfig} from './sanity.shared.js'
+import {fetchSharingProject, renderProjectSharingHtml} from '../../lib/project-sharing.mjs'
 
 const HOST = '127.0.0.1'
-const PORT = 8080
+const PORT = Number(process.env.PORT || 8080)
 const ORIGIN = `http://${HOST}:${PORT}`
 const ROOT = resolve(import.meta.dirname, '../..')
 const TOKEN = process.env.SANITY_API_READ_TOKEN
 const SESSION_COOKIE = 'portfolio-preview-session'
 const SESSION_TTL_MS = 60 * 60 * 1000
-
-if (!TOKEN) {
-  throw new Error('SANITY_API_READ_TOKEN is required. Copy .env.example to .env.local and add a viewer token.')
-}
 
 const client = createClient({
   ...sanityConfig,
@@ -68,6 +65,10 @@ function sendJson(response, status, data) {
 }
 
 async function enableDraftMode(request, response) {
+  if (!TOKEN) {
+    sendJson(response, 503, {error: 'Draft preview requires SANITY_API_READ_TOKEN in studio/.env.local. Published pages remain available.'})
+    return
+  }
   const requestUrl = new URL(request.url, ORIGIN)
   const validation = await validatePreviewUrl(client, requestUrl.toString())
   if (!validation.isValid) {
@@ -173,8 +174,10 @@ const contentTypes = {
   '.webp': 'image/webp',
 }
 
-async function serveStatic(response, pathname) {
-  const requestedPath = pathname === '/' ? '/index.html' : pathname
+async function serveStatic(request, response, requestUrl) {
+  const pathname = requestUrl.pathname
+  const requestedPath = pathname === '/' ? '/index.html'
+    : ['/about', '/work', '/project'].includes(pathname) ? `${pathname}.html` : pathname
   const absolutePath = resolve(ROOT, `.${decodeURIComponent(requestedPath)}`)
   const isInsideRoot = absolutePath === ROOT || absolutePath.startsWith(`${ROOT}${sep}`)
   const relativePath = absolutePath.slice(ROOT.length + 1)
@@ -187,12 +190,23 @@ async function serveStatic(response, pathname) {
   try {
     const fileStat = await stat(absolutePath)
     if (!fileStat.isFile()) throw new Error('Not a file')
-    const content = await readFile(absolutePath)
+    let content = await readFile(absolutePath)
+    const slug = requestUrl.searchParams.get('slug')
+    if (requestedPath === '/project.html' && slug && requestUrl.searchParams.get('sanity-preview') !== '1') {
+      try {
+        const project = await fetchSharingProject(slug)
+        if (project) content = renderProjectSharingHtml(content.toString(), project, ORIGIN)
+      } catch (error) {
+        console.error('Project sharing metadata unavailable.', error)
+        sendJson(response, 503, {error: 'Project metadata temporarily unavailable.'})
+        return
+      }
+    }
     response.writeHead(200, {
       'Content-Type': contentTypes[extname(absolutePath).toLowerCase()] || 'application/octet-stream',
       'Cache-Control': 'no-cache',
     })
-    response.end(content)
+    response.end(request.method === 'HEAD' ? undefined : content)
   } catch {
     sendJson(response, 404, {error: 'Not found.'})
   }
@@ -205,7 +219,7 @@ const server = createServer(async (request, response) => {
     if (requestUrl.pathname === '/api/draft-mode/disable') return disableDraftMode(response)
     if (requestUrl.pathname === '/api/preview/project') return await serveProject(request, response, requestUrl)
     if (requestUrl.pathname === '/api/preview/events') return streamProjectEvents(request, response)
-    return await serveStatic(response, requestUrl.pathname)
+    return await serveStatic(request, response, requestUrl)
   } catch (error) {
     console.error(error)
     sendJson(response, 500, {error: 'Local preview server error.'})

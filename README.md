@@ -27,3 +27,5 @@ python3 -m http.server 8000
 ```
 
 Acesse `http://127.0.0.1:8000`.
+
+Para o preview com metadados sociais no HTML, use `cd studio` e `npm run preview` (porta 8080). A execução e a revisão de CMS/Cloudflare estão documentadas em [CMS-README.md](CMS-README.md).

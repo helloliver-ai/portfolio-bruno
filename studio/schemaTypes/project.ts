@@ -34,7 +34,9 @@ export const project = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({name: 'thumbnail', title: 'Work thumbnail', type: 'optionalAccessibleImage', group: 'info', description: 'Optional. The future website falls back to Project cover.',}),
-    defineField({name: 'credits', title: 'Credits', type: 'array', group: 'info', of: [defineArrayMember({type: 'credit'})]}),
+    defineField({name: 'credits', title: 'Legacy credits', type: 'array', group: 'info', description: 'Existing credits remain visible as Portuguese until Credits PT is set.', of: [defineArrayMember({type: 'credit'})]}),
+    defineField({name: 'creditsPt', title: 'Credits PT', type: 'array', group: 'info', description: 'Independent Portuguese credits. An empty list intentionally hides legacy credits.', of: [defineArrayMember({type: 'credit'})]}),
+    defineField({name: 'creditsEn', title: 'Credits EN', type: 'array', group: 'info', of: [defineArrayMember({type: 'credit'})]}),
     defineField({name: 'workOrder', title: 'Work order', type: 'number', group: 'info', description: 'Use 10, 20, 30… to leave room for future insertions.', validation: (Rule) => Rule.required().integer().positive()}),
     defineField({
       name: 'contentBlocks',
@@ -50,7 +52,7 @@ export const project = defineType({
       ],
       validation: (Rule) =>
         Rule.required().custom((value) =>
-          Array.isArray(value) && value.some((block) => block?._type !== 'spacerBlock')
+          Array.isArray(value) && value.some((block) => (block as {_type?: string})?._type !== 'spacerBlock')
             ? true
             : 'Add at least one content block that is not a Spacer.',
         ),

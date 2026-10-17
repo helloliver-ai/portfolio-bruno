@@ -37,7 +37,10 @@ export default defineConfig({
   projectId: 'uj669d76',
   dataset: 'production',
   plugins: [
-    structureTool(),
+    structureTool({structure: (S) => S.list().title('Portfolio Bruno CMS').items([
+      S.listItem().title('About & contact').id('aboutPage').child(S.document().schemaType('aboutPage').documentId('aboutPage')),
+      ...S.documentTypeListItems().filter((item) => item.getId() !== 'aboutPage'),
+    ])}),
     presentationTool({
       title: 'Portfolio preview',
       previewUrl: {
@@ -56,5 +59,10 @@ export default defineConfig({
   ],
   schema: {
     types: schemaTypes,
+  },
+  document: {
+    newDocumentOptions: (options) => options.filter((option) => option.templateId !== 'aboutPage'),
+    actions: (actions, context) => context.schemaType === 'aboutPage'
+      ? actions.filter((action) => action.action !== 'duplicate') : actions,
   },
 })

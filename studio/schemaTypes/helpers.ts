@@ -20,7 +20,7 @@ export function hasLocalizedContent(value: unknown) {
   const hasText = (locale?: {title?: string; subtitle?: string; body?: unknown[]}) =>
     Boolean(locale?.title?.trim() || locale?.subtitle?.trim() || locale?.body?.length)
 
-  return hasText(content?.pt) && hasText(content?.en)
+  return hasText(content?.pt) || hasText(content?.en)
 }
 
 export function vimeoId(value?: string) {

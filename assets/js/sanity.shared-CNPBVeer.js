@@ -1,36 +1,36 @@
-const E = "image-Tb9Ew8CXIwaY6R1kjMvI0uRR-2000x3000-jpg";
+const v = "image-Tb9Ew8CXIwaY6R1kjMvI0uRR-2000x3000-jpg";
 function R(r) {
-  const [, t, i, o] = r.split("-");
-  if (!t || !i || !o)
-    throw new Error(`Malformed asset _ref '${r}'. Expected an id like "${E}".`);
-  const [n, e] = i.split("x"), s = +n, h = +e;
+  const [, t, i, n] = r.split("-");
+  if (!t || !i || !n)
+    throw new Error(`Malformed asset _ref '${r}'. Expected an id like "${v}".`);
+  const [o, e] = i.split("x"), s = +o, h = +e;
   if (!(isFinite(s) && isFinite(h)))
-    throw new Error(`Malformed asset _ref '${r}'. Expected an id like "${E}".`);
-  return { id: t, width: s, height: h, format: o };
+    throw new Error(`Malformed asset _ref '${r}'. Expected an id like "${v}".`);
+  return { id: t, width: s, height: h, format: n };
 }
 const N = (r) => {
   const t = r;
   return t ? typeof t._ref == "string" : !1;
-}, T = (r) => {
-  const t = r;
-  return t ? typeof t._id == "string" : !1;
 }, H = (r) => {
   const t = r;
+  return t ? typeof t._id == "string" : !1;
+}, T = (r) => {
+  const t = r;
   return t && t.asset ? typeof t.asset.url == "string" : !1;
-}, L = (r) => {
+}, D = (r) => {
   if (typeof r == "object" && r !== null) {
     const t = r;
     return t._upload && (!t.asset || !t.asset._ref);
   }
   return !1;
 };
-function V(r) {
+function L(r) {
   if (!r)
     return null;
   let t;
-  if (typeof r == "string" && D(r))
+  if (typeof r == "string" && V(r))
     t = {
-      asset: { _ref: v(r) }
+      asset: { _ref: E(r) }
     };
   else if (typeof r == "string")
     t = {
@@ -40,16 +40,16 @@ function V(r) {
     t = {
       asset: r
     };
-  else if (T(r))
+  else if (H(r))
     t = {
       asset: {
         _ref: r._id || ""
       }
     };
-  else if (H(r))
+  else if (T(r))
     t = {
       asset: {
-        _ref: v(r.asset.url)
+        _ref: E(r.asset.url)
       }
     };
   else if (typeof r.asset == "object")
@@ -59,10 +59,10 @@ function V(r) {
   const i = r;
   return i.crop && (t.crop = i.crop), i.hotspot && (t.hotspot = i.hotspot), F(t);
 }
-function D(r) {
+function V(r) {
   return /^https?:\/\//.test(`${r}`);
 }
-function v(r) {
+function E(r) {
   return `image-${r.split("/").slice(-1)[0]}`.replace(/\.([a-z]+)$/, "-$1");
 }
 function F(r) {
@@ -81,7 +81,7 @@ function F(r) {
     width: 1
   }), t;
 }
-const S = [
+const P = [
   ["width", "w"],
   ["height", "h"],
   ["format", "fm"],
@@ -107,29 +107,29 @@ function W(r) {
   let t = { ...r || {} };
   const i = t.source;
   delete t.source;
-  const o = V(i);
-  if (!o) {
-    if (i && L(i))
+  const n = L(i);
+  if (!n) {
+    if (i && D(i))
       return "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8HwQACfsD/QNViZkAAAAASUVORK5CYII=";
     throw new Error(`Unable to resolve image URL from source (${JSON.stringify(i)})`);
   }
-  const n = o.asset._ref || o.asset._id || "", e = R(n), s = Math.round(o.crop.left * e.width), h = Math.round(o.crop.top * e.height), p = {
+  const o = n.asset._ref || n.asset._id || "", e = R(o), s = Math.round(n.crop.left * e.width), h = Math.round(n.crop.top * e.height), p = {
     left: s,
     top: h,
-    width: Math.round(e.width - o.crop.right * e.width - s),
-    height: Math.round(e.height - o.crop.bottom * e.height - h)
-  }, a = o.hotspot.height * e.height / 2, f = o.hotspot.width * e.width / 2, d = o.hotspot.x * e.width, u = o.hotspot.y * e.height, l = {
+    width: Math.round(e.width - n.crop.right * e.width - s),
+    height: Math.round(e.height - n.crop.bottom * e.height - h)
+  }, a = n.hotspot.height * e.height / 2, f = n.hotspot.width * e.width / 2, d = n.hotspot.x * e.width, u = n.hotspot.y * e.height, c = {
     left: d - f,
     top: u - a,
     right: d + f,
     bottom: u + a
   };
-  return t.rect || t.focalPoint || t.ignoreImageParams || t.crop || (t = { ...t, ...q({ crop: p, hotspot: l }, t) }), z({ ...t, asset: e });
+  return t.rect || t.focalPoint || t.ignoreImageParams || t.crop || (t = { ...t, ...Q({ crop: p, hotspot: c }, t) }), z({ ...t, asset: e });
 }
 function z(r) {
-  const t = (r.baseUrl || "https://cdn.sanity.io").replace(/\/+$/, ""), i = r.vanityName ? `/${r.vanityName}` : "", o = `${r.asset.id}-${r.asset.width}x${r.asset.height}.${r.asset.format}${i}`;
-  let n;
-  r.mediaLibraryId ? n = `${t}/media-libraries/${r.mediaLibraryId}/images/${o}` : r.canvasId ? n = `${t}/images/canvases/${r.canvasId}/${o}` : n = `${t}/images/${r.projectId}/${r.dataset}/${o}`;
+  const t = (r.baseUrl || "https://cdn.sanity.io").replace(/\/+$/, ""), i = r.vanityName ? `/${r.vanityName}` : "", n = `${r.asset.id}-${r.asset.width}x${r.asset.height}.${r.asset.format}${i}`;
+  let o;
+  r.mediaLibraryId ? o = `${t}/media-libraries/${r.mediaLibraryId}/images/${n}` : r.canvasId ? o = `${t}/images/canvases/${r.canvasId}/${n}` : o = `${t}/images/${r.projectId}/${r.dataset}/${n}`;
   const e = [];
   if (r.rect) {
     const { left: h, top: p, width: a, height: f } = r.rect;
@@ -137,17 +137,17 @@ function z(r) {
   }
   r.bg && e.push(`bg=${r.bg}`), r.focalPoint && (e.push(`fp-x=${r.focalPoint.x}`), e.push(`fp-y=${r.focalPoint.y}`));
   const s = [r.flipHorizontal && "h", r.flipVertical && "v"].filter(Boolean).join("");
-  return s && e.push(`flip=${s}`), S.forEach((h) => {
+  return s && e.push(`flip=${s}`), P.forEach((h) => {
     const [p, a] = h;
     typeof r[p] < "u" ? e.push(`${a}=${encodeURIComponent(r[p])}`) : typeof r[a] < "u" && e.push(`${a}=${encodeURIComponent(r[a])}`);
-  }), e.length === 0 ? n : `${n}?${e.join("&")}`;
+  }), e.length === 0 ? o : `${o}?${e.join("&")}`;
 }
-function q(r, t) {
+function Q(r, t) {
   let i;
-  const o = t.width, n = t.height;
-  if (!(o && n))
-    return { width: o, height: n, rect: r.crop };
-  const e = r.crop, s = r.hotspot, h = o / n;
+  const n = t.width, o = t.height;
+  if (!(n && o))
+    return { width: n, height: o, rect: r.crop };
+  const e = r.crop, s = r.hotspot, h = n / o;
   if (e.width / e.height > h) {
     const p = Math.round(e.height), a = Math.round(p * h), f = Math.max(0, Math.round(e.top)), d = Math.round((s.right - s.left) / 2 + s.left);
     let u = Math.max(0, Math.round(d - a / 2));
@@ -158,12 +158,12 @@ function q(r, t) {
     u < e.top ? u = e.top : u + a > e.top + e.height && (u = e.top + e.height - a), i = { left: f, top: u, width: p, height: a };
   }
   return {
-    width: o,
-    height: n,
+    width: n,
+    height: o,
     rect: i
   };
 }
-const K = ["clip", "crop", "fill", "fillmax", "max", "scale", "min"], Q = ["top", "bottom", "left", "right", "center", "focalpoint", "entropy"], B = ["format"];
+const q = ["clip", "crop", "fill", "fillmax", "max", "scale", "min"], K = ["top", "bottom", "left", "right", "center", "focalpoint", "entropy"], B = ["format"];
 function X(r) {
   return r && "config" in r ? typeof r.config == "function" : !1;
 }
@@ -171,18 +171,18 @@ function Y(r) {
   return r && "clientConfig" in r ? typeof r.clientConfig == "object" : !1;
 }
 function x(r) {
-  const { apiHost: t, projectId: i, dataset: o } = r, n = {
+  const { apiHost: t, projectId: i, dataset: n } = r, o = {
     baseUrl: (t || "https://api.sanity.io").replace(/^https:\/\/api\./, "https://cdn.")
   }, e = r.resource ?? r["~experimental_resource"];
   if (e?.type === "media-library") {
     if (typeof e.id != "string" || e.id.length === 0)
       throw new Error('Media library clients must include an id in "resource"');
-    return { ...n, mediaLibraryId: e.id };
+    return { ...o, mediaLibraryId: e.id };
   }
   if (e?.type === "canvas") {
     if (typeof e.id != "string" || e.id.length === 0)
       throw new Error('Canvas clients must include an id in "resource"');
-    return { ...n, canvasId: e.id };
+    return { ...o, canvasId: e.id };
   }
   if (e?.type === "dataset") {
     if (typeof e.id != "string" || e.id.length === 0)
@@ -192,47 +192,47 @@ function x(r) {
       throw new Error(
         'Dataset resource id must be in the format "projectId.dataset", got: ' + e.id
       );
-    return { ...n, projectId: s, dataset: h };
+    return { ...o, projectId: s, dataset: h };
   }
-  return { ...n, projectId: i, dataset: o };
+  return { ...o, projectId: i, dataset: n };
 }
 function J(r) {
-  const t = S;
+  const t = P;
   for (const i of t) {
-    const [o, n] = i;
-    if (r === o || r === n)
-      return o;
+    const [n, o] = i;
+    if (r === n || r === o)
+      return n;
   }
   return r;
 }
-function j(r) {
+function S(r) {
   let t = {};
   return X(r) ? t = x(r.config()) : Y(r) ? t = x(r.clientConfig) : t = r || {}, t;
 }
 function G(r, t) {
-  const i = j(t);
+  const i = S(t);
   return new r(null, i);
 }
 function dt(r) {
-  return G(m, r);
+  return G(y, r);
 }
 function Z(r, t) {
-  const i = t.baseUrl || r.baseUrl, o = { baseUrl: i };
-  for (const n in t)
-    if (t.hasOwnProperty(n)) {
-      const e = J(n);
-      o[e] = t[n];
+  const i = t.baseUrl || r.baseUrl, n = { baseUrl: i };
+  for (const o in t)
+    if (t.hasOwnProperty(o)) {
+      const e = J(o);
+      n[e] = t[o];
     }
-  return { baseUrl: i, ...o };
+  return { baseUrl: i, ...n };
 }
-class m {
+class y {
   options;
   constructor(t, i) {
     this.options = t ? { ...t.options || {}, ...i || {} } : { ...i || {} };
   }
   withOptions(t) {
     const i = Z(this.options, t);
-    return new m(this, i);
+    return new y(this, i);
   }
   // The image to be represented. Accepts a Sanity 'image'-document, 'asset'-document or
   // _id of asset. To get the benefit of automatic hot-spot/crop integration with the content
@@ -249,8 +249,8 @@ class m {
     return this.withOptions({ projectId: t });
   }
   withClient(t) {
-    const i = j(t), o = { ...this.options };
-    return delete o.baseUrl, delete o.projectId, delete o.dataset, delete o.mediaLibraryId, delete o.canvasId, new m(null, { ...i, ...o });
+    const i = S(t), n = { ...this.options };
+    return delete n.baseUrl, delete n.projectId, delete n.dataset, delete n.mediaLibraryId, delete n.canvasId, new y(null, { ...i, ...n });
   }
   // Specify background color
   bg(t) {
@@ -296,8 +296,8 @@ class m {
     return this.withOptions({ sharpen: t });
   }
   // Specify the desired rectangle of the image
-  rect(t, i, o, n) {
-    return this.withOptions({ rect: { left: t, top: i, width: o, height: n } });
+  rect(t, i, n, o) {
+    return this.withOptions({ rect: { left: t, top: i, width: n, height: o } });
   }
   // Specify the image format of the image. 'jpg', 'pjpg', 'png', 'webp'
   format(t) {
@@ -331,12 +331,12 @@ class m {
     return this.withOptions({ ignoreImageParams: !0 });
   }
   fit(t) {
-    if (K.indexOf(t) === -1)
+    if (q.indexOf(t) === -1)
       throw new Error(`Invalid fit mode "${t}"`);
     return this.withOptions({ fit: t });
   }
   crop(t) {
-    if (Q.indexOf(t) === -1)
+    if (K.indexOf(t) === -1)
       throw new Error(`Invalid crop mode "${t}"`);
     return this.withOptions({ crop: t });
   }
@@ -372,13 +372,13 @@ class m {
   }
 }
 const tt = /[^.[\]]+|\[(?:(-?\d+(?:\.\d+)?)|(["'])((?:(?!\2)[^\\]|\\.)*?)\2)\]|(?=(?:\.|\[\])(?:\.|\[\]|$))/g, b = /_key\s*==\s*['"](.*)['"]/, rt = /^\d*:\d*$/;
-function O(r) {
+function I(r) {
   return typeof r == "number" || typeof r == "string" && /^\[\d+\]$/.test(r);
 }
 function g(r) {
   return typeof r == "string" ? b.test(r.trim()) : typeof r == "object" && "_key" in r;
 }
-function P(r) {
+function j(r) {
   if (typeof r == "string" && rt.test(r))
     return !0;
   if (!Array.isArray(r) || r.length !== 2)
@@ -387,36 +387,36 @@ function P(r) {
   return (typeof t == "number" || t === "") && (typeof i == "number" || i === "");
 }
 function et(r, t, i) {
-  const o = typeof t == "string" ? U(t) : t;
-  if (!Array.isArray(o))
+  const n = typeof t == "string" ? U(t) : t;
+  if (!Array.isArray(n))
     throw new Error("Path must be an array or a string");
-  let n = r;
-  for (let e = 0; e < o.length; e++) {
-    const s = o[e];
-    if (O(s)) {
-      if (!Array.isArray(n))
+  let o = r;
+  for (let e = 0; e < n.length; e++) {
+    const s = n[e];
+    if (I(s)) {
+      if (!Array.isArray(o))
         return i;
-      n = n[s];
+      o = o[s];
     }
     if (g(s)) {
-      if (!Array.isArray(n))
+      if (!Array.isArray(o))
         return i;
-      n = n.find((h) => h._key === s._key);
+      o = o.find((h) => h._key === s._key);
     }
-    if (typeof s == "string" && (n = typeof n == "object" && n !== null ? n[s] : void 0), typeof n > "u")
+    if (typeof s == "string" && (o = typeof o == "object" && o !== null ? o[s] : void 0), typeof o > "u")
       return i;
   }
-  return n;
+  return o;
 }
 function k(r) {
   if (!Array.isArray(r))
     throw new Error("Path is not an array");
-  return r.reduce((t, i, o) => {
-    const n = typeof i;
-    if (n === "number")
+  return r.reduce((t, i, n) => {
+    const o = typeof i;
+    if (o === "number")
       return `${t}[${i}]`;
-    if (n === "string")
-      return `${t}${o === 0 ? "" : "."}${i}`;
+    if (o === "string")
+      return `${t}${n === 0 ? "" : "."}${i}`;
     if (g(i) && i._key)
       return `${t}[_key=="${i._key}"]`;
     if (Array.isArray(i)) {
@@ -435,57 +435,57 @@ function U(r) {
   return t.map(it);
 }
 function it(r) {
-  return O(r) ? ot(r) : g(r) ? nt(r) : P(r) ? st(r) : r;
-}
-function ot(r) {
-  return Number(r.replace(/[^\d]/g, ""));
+  return I(r) ? nt(r) : g(r) ? ot(r) : j(r) ? st(r) : r;
 }
 function nt(r) {
+  return Number(r.replace(/[^\d]/g, ""));
+}
+function ot(r) {
   return { _key: r.match(b)[1] };
 }
 function st(r) {
-  const [t, i] = r.split(":").map((o) => o === "" ? o : Number(o));
+  const [t, i] = r.split(":").map((n) => n === "" ? n : Number(n));
   return [t, i];
 }
-var lt = /* @__PURE__ */ Object.freeze({
+var ct = /* @__PURE__ */ Object.freeze({
   __proto__: null,
   fromString: U,
   get: et,
-  isIndexSegment: O,
-  isIndexTuple: P,
+  isIndexSegment: I,
+  isIndexTuple: j,
   isKeySegment: g,
   reKeySegment: b,
   toString: k
 });
-const at = "drafts", ht = "versions", y = `${at}.`, M = `${ht}.`;
-function I(r) {
-  return r.startsWith(y);
+const at = "drafts", ht = "versions", m = `${at}.`, M = `${ht}.`;
+function O(r) {
+  return r.startsWith(m);
 }
 function w(r) {
   return r.startsWith(M);
 }
 function ut(r) {
-  return !I(r) && !w(r);
+  return !O(r) && !w(r);
 }
-function ct(r) {
+function lt(r) {
   if (w(r)) {
-    const t = A(r);
-    return y + t;
+    const t = _(r);
+    return m + t;
   }
-  return I(r) ? r : y + r;
+  return O(r) ? r : m + r;
 }
 function wt(r, t) {
   if (t === "drafts" || t === "published")
     throw new Error('Version can not be "published" or "drafts"');
-  return `${M}${t}.${A(r)}`;
+  return `${M}${t}.${_(r)}`;
 }
 function pt(r) {
   if (!w(r)) return;
   const [t, i] = r.split(".");
   return i;
 }
-function A(r) {
-  return w(r) ? r.split(".").slice(2).join(".") : I(r) ? r.slice(y.length) : r;
+function _(r) {
+  return w(r) ? r.split(".").slice(2).join(".") : O(r) ? r.slice(m.length) : r;
 }
 function ft(r) {
   return r.map((t) => {
@@ -498,12 +498,12 @@ function ft(r) {
     throw new Error(`invalid segment:${JSON.stringify(t)}`);
   });
 }
-function mt(r) {
+function yt(r) {
   const {
     baseUrl: t,
     workspace: i = "default",
-    tool: o = "default",
-    id: n,
+    tool: n = "default",
+    id: o,
     type: e,
     path: s,
     projectId: h,
@@ -513,37 +513,39 @@ function mt(r) {
     throw new Error("baseUrl is required");
   if (!s)
     throw new Error("path is required");
-  if (!n)
+  if (!o)
     throw new Error("id is required");
   if (t !== "/" && t.endsWith("/"))
     throw new Error("baseUrl must not end with a slash");
-  const a = i === "default" ? void 0 : i, f = o === "default" ? void 0 : o, d = A(n), u = Array.isArray(s) ? k(ft(s)) : s, l = new URLSearchParams({
+  const a = i === "default" ? void 0 : i, f = n === "default" ? void 0 : n, d = _(o), u = Array.isArray(s) ? k(ft(s)) : s, c = new URLSearchParams({
     baseUrl: t,
     id: d,
     type: e,
     path: u
   });
-  if (a && l.set("workspace", a), f && l.set("tool", f), h && l.set("projectId", h), p && l.set("dataset", p), ut(n))
-    l.set("perspective", "published");
-  else if (w(n)) {
-    const C = pt(n);
-    l.set("perspective", C);
+  if (a && c.set("workspace", a), f && c.set("tool", f), h && c.set("projectId", h), p && c.set("dataset", p), ut(o))
+    c.set("perspective", "published");
+  else if (w(o)) {
+    const C = pt(o);
+    c.set("perspective", C);
   }
   const $ = [t === "/" ? "" : t];
   a && $.push(a);
-  const _ = [
+  const A = [
     "mode=presentation",
     `id=${d}`,
     `type=${e}`,
     `path=${encodeURIComponent(u)}`
   ];
-  return f && _.push(`tool=${f}`), $.push("intent", "edit", `${_.join(";")}?${l}`), $.join("/");
+  return f && A.push(`tool=${f}`), $.push("intent", "edit", `${A.join(";")}?${c}`), $.join("/");
 }
-const yt = {
+const mt = {
   projectId: "uj669d76",
   dataset: "production",
   apiVersion: "2026-10-01"
-}, c = "{..., asset->{_id, url, metadata{dimensions}}}", gt = `*[_type == "project"]|order(workOrder asc){
+}, l = "{..., asset->{_id, url, metadata{dimensions}}}", gt = `*[_type == "aboutPage" && _id == "aboutPage"][0]{
+  contacts, experienceHeading, educationHeading, experience, education
+}`, $t = `*[_type == "project"]|order(workOrder asc){
   _id,
   _type,
   title,
@@ -552,9 +554,9 @@ const yt = {
   projectType,
   year,
   workOrder,
-  thumbnail{..., image${c}},
-  cover{..., image${c}}
-}`, $t = `*[_type == "project" && slug.current == $slug][0]{
+  thumbnail{..., image${l}},
+  cover{..., image${l}}
+}`, bt = `*[_type == "project" && slug.current == $slug][0]{
   _id,
   _type,
   _rev,
@@ -564,8 +566,11 @@ const yt = {
   projectType,
   year,
   heroLayout,
-  cover{..., image${c}},
-  credits[]{_key, label, value},
+  cover{..., image${l}},
+  credits[]{_key, label, value, style},
+  creditsPt[]{_key, label, value, style},
+  creditsEn[]{_key, label, value, style},
+  seo{metaDescription, shareImage${l}},
   workOrder,
   contentBlocks[]{
     _key,
@@ -577,34 +582,36 @@ const yt = {
     autoplay,
     loop,
     muted,
+    caption,
     content,
-    media{..., image${c}},
+    media{..., image${l}},
     left{
       kind,
       text,
-      image{..., image${c}},
+      image{..., image${l}},
       vimeo
     },
     right{
       kind,
       text,
-      image{..., image${c}},
+      image{..., image${l}},
       vimeo
     }
   }
 }`;
 export {
-  yt as a,
+  mt as a,
   wt as b,
   dt as c,
   pt as d,
-  ct as e,
+  lt as e,
   w as f,
-  A as g,
+  _ as g,
   gt as h,
-  I as i,
-  mt as j,
-  $t as p,
-  lt as s
+  O as i,
+  $t as j,
+  yt as k,
+  bt as p,
+  ct as s
 };
-//# sourceMappingURL=sanity.shared-CtFB0wjo.js.map
+//# sourceMappingURL=sanity.shared-CNPBVeer.js.map

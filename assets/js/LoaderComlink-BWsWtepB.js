@@ -1,5 +1,5 @@
-import { c as n, r as c } from "./client-B91r97md.js";
-import { c as i, a as l, b as p, s as o, d as r, e as a, f as s } from "./renderVisualEditing-CUEGG9AL.js";
+import { c as n, r as c } from "./client-9WJ4WeRA.js";
+import { c as i, a as l, b as p, s as o, d as r, e as a, f as s } from "./renderVisualEditing-BkuBfrr2.js";
 function m() {
   const e = n.c(1);
   let t;
@@ -25,4 +25,4 @@ m.displayName = "LoaderComlink";
 export {
   m as default
 };
-//# sourceMappingURL=LoaderComlink-DSDvkKY0.js.map
+//# sourceMappingURL=LoaderComlink-BWsWtepB.js.map

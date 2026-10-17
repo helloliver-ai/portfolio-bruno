@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "sanity dev",
-    "preview": "node --env-file=.env.local preview/server.mjs",
+    "preview": "node --env-file-if-exists=.env.local preview/server.mjs",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test ../tests/*.test.mjs",
     "build:preview": "vite build --config preview/vite.config.js",
     "build": "sanity build",
     "deploy": "sanity deploy"
@@ -24,6 +26,7 @@
   "devDependencies": {
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
+    "jsdom": "^29.1.1",
     "typescript": "^5.9.3",
     "vite": "^7.1.7"
   }

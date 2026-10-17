@@ -58,18 +58,19 @@
       "title": "experiência",
       "translation": "experience",
       "entries": [
-        { "company": "Instituto Hahaha", "role": "Designer", "period": "2021 - now" },
-        { "company": "Integração Escola de Negócios", "role": "Designer", "period": "2021 - now" },
-        { "company": "2simple", "role": "Designer", "period": "2021 - now" },
-        { "company": "Estúdio Ventana", "role": "Designer", "period": "2021 - now" },
-        { "company": "Néos Indústria de Tecnologia", "role": "Designer", "period": "2021 - now" }
+        { "company": "Instituto Hahaha", "role": "Designer", "period": "2021 - atual" },
+        { "company": "Integração Escola de Negócios", "role": "Designer", "period": "2021 - atual" },
+        { "company": "2simple", "role": "Designer", "period": "2021 - atual" },
+        { "company": "Estúdio Ventana", "role": "Designer", "period": "2021 - atual" },
+        { "company": "Néos Indústria de Tecnologia", "role": "Designer", "period": "2021 - atual" }
       ]
     },
     "education": {
       "title": "educação",
       "translation": "education",
-      "course": "Bachelor’s Degree in Design",
-      "school": "Universidade Federal de Minas Gerais (UFMG)"
+      "entries": [
+        { "course": "Bacharelado em Design", "school": "Universidade Federal de Minas Gerais (UFMG)" }
+      ]
     },
     "socials": [
       { "label": "WhatsApp" },

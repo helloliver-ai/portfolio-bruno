@@ -12,3 +12,6 @@
 .env
 .env.*
 !.env.example
+
+# Cloudflare local development cache
+.wrangler/

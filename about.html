@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="page-ready.js"></script>
   <title>About | Bruno Oliveira</title>
   <meta name="description" content="Conheça Bruno Oliveira, designer e diretor de arte, sua trajetória profissional, experiência e abordagem criativa.">
 
@@ -14,7 +15,13 @@
 </head>
 
 <body data-page="about">
-  <header class="portfolio-header" id="site-header"></header>
+  <header class="portfolio-header" id="site-header">
+    <nav class="portfolio-nav" aria-label="Navegação principal">
+      <a class="portfolio-nav__link" href="index.html">home</a>
+      <a class="portfolio-nav__link" href="work.html">work</a>
+      <a class="portfolio-nav__link" href="about.html" aria-current="page">about+contact</a>
+    </nav>
+  </header>
 
   <main class="about-page" id="about-page" data-cms-region="about"></main>
   <footer class="site-footer" id="site-footer"></footer>

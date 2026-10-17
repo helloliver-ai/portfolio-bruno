@@ -1,7 +1,7 @@
 import {createClient} from '@sanity/client'
 import {createImageUrlBuilder} from '@sanity/image-url'
 
-import {projectQuery, projectsQuery, sanityConfig} from './sanity.shared.js'
+import {aboutQuery, projectQuery, projectsQuery, sanityConfig} from './sanity.shared.js'
 
 const client = createClient({
   ...sanityConfig,
@@ -34,4 +34,8 @@ export async function fetchPublishedProjects() {
 
 export async function fetchPublishedProject(slug) {
   return client.fetch(projectQuery, {slug}, {cache: 'no-store'})
+}
+
+export async function fetchPublishedAbout() {
+  return client.fetch(aboutQuery, {}, {cache: 'no-store'})
 }

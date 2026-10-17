@@ -2,9 +2,24 @@ import {defineField, defineType} from 'sanity'
 
 import {hasLocalizedContent, imageName, isVimeoUrl, plainText, VIMEO_URL_MESSAGE, vimeoId} from './helpers'
 
+export const editorialStyle = defineType({
+  name: 'editorialStyle',
+  title: 'Editorial style',
+  type: 'object',
+  description: 'Optional overrides. Leave unset to use the website defaults.',
+  fields: [
+    defineField({name: 'color', title: 'Color', type: 'string', options: {list: [
+      {title: 'Black', value: 'black'}, {title: 'White', value: 'white'}, {title: 'Orange', value: 'orange'},
+    ]}, validation: (Rule) => Rule.custom((value) => !value || ['black', 'white', 'orange'].includes(value) || 'Choose Black, White, or Orange.')}),
+    defineField({name: 'italic', title: 'Italic', type: 'boolean'}),
+    defineField({name: 'bold', title: 'Bold', type: 'boolean'}),
+  ],
+})
+
 const localizedTextFields = [
   defineField({name: 'title', title: 'Title', type: 'string', validation: (Rule) => Rule.max(160)}),
   defineField({name: 'subtitle', title: 'Subtitle', type: 'string', validation: (Rule) => Rule.max(240)}),
+  defineField({name: 'style', title: 'Editorial style', type: 'editorialStyle'}),
   defineField({
     name: 'body',
     title: 'Body',
@@ -43,11 +58,14 @@ export const localizedString = defineType({
   fields: [
     defineField({name: 'pt', title: 'Portuguese (PT)', type: 'string', validation: (Rule) => Rule.max(240)}),
     defineField({name: 'en', title: 'English (EN)', type: 'string', validation: (Rule) => Rule.max(240)}),
+    defineField({name: 'ptStyle', title: 'Portuguese style', type: 'editorialStyle'}),
+    defineField({name: 'enStyle', title: 'English style', type: 'editorialStyle'}),
   ],
   validation: (Rule) =>
     Rule.custom((value) => {
       if (!value) return true
-      return value.pt?.trim() && value.en?.trim() ? true : 'Fill in both Portuguese and English.'
+      const text = value as {pt?: string; en?: string}
+      return text.pt?.trim() || text.en?.trim() ? true : 'Fill in Portuguese, English, or both.'
     }),
 })
 
@@ -63,7 +81,7 @@ export const localizedBlockContent = defineType({
     Rule.custom((value) =>
       hasLocalizedContent(value)
         ? true
-        : 'Add at least a title, subtitle, or body in both Portuguese and English.',
+        : 'Add at least a title, subtitle, or body in Portuguese, English, or both.',
     ),
 })
 
@@ -77,8 +95,8 @@ export const localizedAltText = defineType({
   ],
 })
 
-function validateLocalizedAlt(value: unknown, context: {parent?: {decorative?: boolean; image?: {asset?: unknown}}}, optional = false) {
-  const parent = context.parent || {}
+function validateLocalizedAlt(value: unknown, context: {parent?: unknown}, optional = false) {
+  const parent = (context.parent || {}) as {decorative?: boolean; image?: {asset?: unknown}}
   if (optional && !parent.image?.asset) return true
   if (parent.decorative) return true
   if (typeof value === 'string' && value.trim()) return true
@@ -95,6 +113,7 @@ export const accessibleImage = defineType({
   fields: [
     defineField({name: 'image', title: 'Image', type: 'image', options: {hotspot: true}, validation: (Rule) => Rule.required()}),
     defineField({name: 'decorative', title: 'Decorative image', type: 'boolean', initialValue: false}),
+    defineField({name: 'caption', title: 'Caption PT / EN', type: 'localizedString'}),
     defineField({
       name: 'alt',
       title: 'Alternative text',
@@ -119,6 +138,7 @@ export const optionalAccessibleImage = defineType({
   fields: [
     defineField({name: 'image', title: 'Image', type: 'image', options: {hotspot: true}}),
     defineField({name: 'decorative', title: 'Decorative image', type: 'boolean', initialValue: false}),
+    defineField({name: 'caption', title: 'Caption PT / EN', type: 'localizedString'}),
     defineField({
       name: 'alt',
       title: 'Alternative text',
@@ -143,6 +163,7 @@ export const credit = defineType({
   fields: [
     defineField({name: 'label', title: 'Role / label', type: 'string'}),
     defineField({name: 'value', title: 'Name / value', type: 'string', validation: (Rule) => Rule.required()}),
+    defineField({name: 'style', title: 'Editorial style', type: 'editorialStyle'}),
   ],
   preview: {
     select: {label: 'label', title: 'value'},
@@ -158,7 +179,7 @@ export const projectSeo = defineType({
   type: 'object',
   fields: [
     defineField({name: 'metaDescription', title: 'Search description', type: 'text', rows: 3, validation: (Rule) => Rule.max(160)}),
-    defineField({name: 'shareImage', title: 'Social sharing image', type: 'image', options: {hotspot: true}}),
+    defineField({name: 'shareImage', title: 'Social sharing image', type: 'image', options: {hotspot: true}, description: 'Optional. Fallback: Work thumbnail, then Project cover. Served as a public 1200 × 630 JPEG for social previews.'}),
   ],
 })
 
@@ -243,15 +264,16 @@ export const textBlock = defineType({
     }),
   ],
   preview: {
-    select: {title: 'content.pt.title', subtitle: 'content.pt.subtitle', body: 'content.pt.body'},
-    prepare({title, subtitle, body}) {
-      const firstText = title || subtitle || plainText(body).slice(0, 80) || 'Add Portuguese text'
-      return {title: `Text — PT: ${firstText}`}
+    select: {title: 'content.pt.title', subtitle: 'content.pt.subtitle', body: 'content.pt.body', titleEn: 'content.en.title', subtitleEn: 'content.en.subtitle', bodyEn: 'content.en.body'},
+    prepare({title, subtitle, body, titleEn, subtitleEn, bodyEn}) {
+      const firstText = title || subtitle || plainText(body).slice(0, 80) || titleEn || subtitleEn || plainText(bodyEn).slice(0, 80) || 'Text'
+      return {title: `Text — ${firstText}`}
     },
   },
 })
 
 const vimeoFields = [
+  defineField({name: 'caption', title: 'Caption PT / EN', type: 'localizedString'}),
   defineField({
     name: 'vimeoUrl',
     title: 'Vimeo URL',
@@ -264,6 +286,7 @@ const vimeoFields = [
 ]
 
 const optionalVimeoFields = [
+  defineField({name: 'caption', title: 'Caption PT / EN', type: 'localizedString'}),
   defineField({
     name: 'vimeoUrl',
     title: 'Vimeo URL',
@@ -334,7 +357,7 @@ export const columnContent = defineType({
       hidden: ({parent}) => parent?.kind !== 'image',
       validation: (Rule) =>
         Rule.custom((value, context) =>
-          context.parent?.kind !== 'image' || value?.image?.asset ? true : 'Add an image.',
+          (context.parent as {kind?: string})?.kind !== 'image' || (value as {image?: {asset?: unknown}})?.image?.asset ? true : 'Add an image.',
         ),
     }),
     defineField({
@@ -342,7 +365,7 @@ export const columnContent = defineType({
       title: 'Text',
       type: 'localizedBlockContent',
       hidden: ({parent}) => parent?.kind !== 'text',
-      validation: (Rule) => Rule.custom((value, context) => context.parent?.kind !== 'text' || value ? true : 'Add text in both languages.'),
+      validation: (Rule) => Rule.custom((value, context) => (context.parent as {kind?: string})?.kind !== 'text' || hasLocalizedContent(value) ? true : 'Add text in Portuguese, English, or both.'),
     }),
     defineField({
       name: 'vimeo',
@@ -351,7 +374,7 @@ export const columnContent = defineType({
       hidden: ({parent}) => parent?.kind !== 'vimeo',
       validation: (Rule) =>
         Rule.custom((value, context) =>
-          context.parent?.kind !== 'vimeo' || value?.vimeoUrl ? true : 'Add a Vimeo URL.',
+          (context.parent as {kind?: string})?.kind !== 'vimeo' || (value as {vimeoUrl?: string})?.vimeoUrl ? true : 'Add a Vimeo URL.',
         ),
     }),
   ],
@@ -374,7 +397,7 @@ export const twoColumns = defineType({
   ],
   validation: (Rule) =>
     Rule.custom((value) =>
-      value?.left?.kind === 'empty' && value?.right?.kind === 'empty'
+      (value as {left?: {kind?: string}})?.left?.kind === 'empty' && (value as {right?: {kind?: string}})?.right?.kind === 'empty'
         ? 'At least one column must contain image, text, or Vimeo.'
         : true,
     ),

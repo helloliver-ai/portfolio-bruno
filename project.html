@@ -4,8 +4,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="page-ready.js"></script>
   <title>Projeto | Bruno Oliveira</title>
   <meta name="description" content="Projeto selecionado do portfólio de Bruno Oliveira.">
+  <!-- project-sharing -->
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,7 +16,13 @@
 </head>
 
 <body data-page="project">
-  <header class="portfolio-header" id="site-header"></header>
+  <header class="portfolio-header" id="site-header">
+    <nav class="portfolio-nav" aria-label="Navegação principal">
+      <a class="portfolio-nav__link" href="index.html">home</a>
+      <a class="portfolio-nav__link" href="work.html" aria-current="page">work</a>
+      <a class="portfolio-nav__link" href="about.html">about+contact</a>
+    </nav>
+  </header>
 
   <main class="project-page" id="project-root" aria-live="polite"></main>
 

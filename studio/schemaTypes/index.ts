@@ -1,6 +1,8 @@
 import {project} from './project'
+import {aboutPage, aboutContact, whatsappContact, experienceEntry, educationEntry} from './about'
 import {
   accessibleImage,
+  editorialStyle,
   optionalAccessibleImage,
   optionalColumnVimeo,
   columnContent,
@@ -21,6 +23,12 @@ import {
 
 export const schemaTypes = [
   project,
+  aboutPage,
+  aboutContact,
+  whatsappContact,
+  experienceEntry,
+  educationEntry,
+  editorialStyle,
   accessibleImage,
   optionalAccessibleImage,
   optionalColumnVimeo,

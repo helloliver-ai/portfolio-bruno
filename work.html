@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="page-ready.js"></script>
   <title>Work | Bruno Oliveira</title>
   <meta name="description" content="Projetos de design gráfico, identidade visual, direção de arte e design editorial de Bruno Oliveira.">
 
@@ -15,7 +16,13 @@
 
 <body data-page="work">
 
-  <header class="portfolio-header" id="site-header"></header>
+  <header class="portfolio-header" id="site-header">
+    <nav class="portfolio-nav" aria-label="Navegação principal">
+      <a class="portfolio-nav__link" href="index.html">home</a>
+      <a class="portfolio-nav__link" href="work.html" aria-current="page">work</a>
+      <a class="portfolio-nav__link" href="about.html">about+contact</a>
+    </nav>
+  </header>
 
   <main class="work-page" id="work-page" data-cms-region="work.projects"></main>
 
