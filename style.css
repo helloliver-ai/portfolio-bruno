@@ -454,6 +454,7 @@ img {
   height: calc((var(--about-intro-height) - 1px) * 0.8093 + 1px);
   overflow: hidden;
   border-top: var(--line);
+  border-bottom: var(--line);
 }
 
 .about-photo img {
