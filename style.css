@@ -412,15 +412,15 @@ img {
   overflow: hidden;
   border-bottom: var(--line);
   background:
-  linear-gradient(var(--accent), var(--accent))
-    0 calc((var(--about-intro-height) - 1px) * 0.153)
-    / 100% 1px no-repeat,
+    linear-gradient(var(--accent), var(--accent))
+      0 calc((var(--about-intro-height) - 1px) * 0.153)
+      / 100% 1px no-repeat,
 
-  linear-gradient(var(--accent), var(--accent))
-    0 calc((var(--about-intro-height) - 1px) * 0.9623)
-    / 100% 1px no-repeat,
+    linear-gradient(var(--accent), var(--accent))
+      0 calc((var(--about-intro-height) - 1px) * 0.9623)
+      / 46.515% 1px no-repeat,
 
-  var(--white);
+    var(--white);
 }
 
 .about-intro::before,
@@ -451,7 +451,7 @@ img {
   top: calc((var(--about-intro-height) - 1px) * 0.153);
   left: 6.875%;
   width: 39.64%;
-  height: calc((var(--about-intro-height) - 1px) * 0.8093);
+  height: calc((var(--about-intro-height) - 1px) * 0.8093 + 1px);
   overflow: hidden;
   border-top: var(--line);
 }
